@@ -1,8 +1,11 @@
 import sys, os, subprocess
 import matplotlib
+import numpy as np
 import textwrap
 
 from dilatometry_methods import Dilatometry
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -151,15 +154,19 @@ class MainWindow(QMainWindow):
         file_label.setAlignment(Qt.AlignCenter)
 
     def open_documentation(self):
-        QDesktopServices.openUrl(QUrl("https://github.com/tsmathis"))
+        QDesktopServices.openUrl(
+            QUrl("https://github.com/tsmathis/dilatometry_analyst/blob/main/README.md")
+        )
 
     def load_data(self):
         dialog = QFileDialog()
-        folder_path = dialog.getExistingDirectory(None, "", directory="")
-        if not folder_path:
+        self.import_path = dialog.getExistingDirectory(
+            None, "", directory=os.path.expanduser("~")
+        )
+        if not self.import_path:
             return
         try:
-            dila_files = self.dilatometry_data.load_files(file_path=folder_path)
+            dila_files = self.dilatometry_data.load_files(file_path=self.import_path)
             if len(dila_files) == 0:
                 raise Exception
             self.dilatometry_data.process_data(dila_files)
@@ -280,17 +287,11 @@ class MainWindow(QMainWindow):
                     self.avg_data[key]["Average Potential (V)"],
                     self.avg_data[key]["Average Displacement (um)"],
                 )
-                avg_preview.axes3.fill_between(
-                    self.avg_data[key]["Average Potential (V)"],
-                    (
-                        self.avg_data[key]["Average Displacement (um)"]
-                        + self.avg_data[key]["Displacement Stand Dev (um)"]
-                    ),
-                    (
-                        self.avg_data[key]["Average Displacement (um)"]
-                        - self.avg_data[key]["Displacement Stand Dev (um)"]
-                    ),
-                    alpha=0.4,
+                x = self.avg_data[key]["Average Potential (V)"]
+                y = self.avg_data[key]["Average Displacement (um)"]
+                err = self.avg_data[key]["Displacement Stand Dev (um)"]
+                self.draw_error_band(
+                    ax=avg_preview.axes3, x=x, y=y, err=err, edgecolor="none", alpha=0.4
                 )
                 avg_preview.axes3.set_xlabel("Potential (V)")
                 avg_preview.axes3.set_ylabel("Averaged Displacement ($\mu$m)")
@@ -299,6 +300,27 @@ class MainWindow(QMainWindow):
                 stack.addWidget(avg_widget)
 
                 self.tabs.addTab(preview, f"File {key + 1}")
+
+    def draw_error_band(self, ax, x, y, err, **kwargs):
+        # Calculate normals via centered finite differences (except the first point
+        # which uses a forward difference and the last point which uses a backward
+        # difference).
+        x = np.array(x)
+        y = np.array(y)
+        dx = np.concatenate([[x[1] - x[0]], x[2:] - x[:-2], [x[-1] - x[-2]]])
+        dy = np.concatenate([[y[1] - y[0]], y[2:] - y[:-2], [y[-1] - y[-2]]])
+        l = np.hypot(dx, dy)
+        ny = -dx / l
+
+        # end points of errors
+        yp = y + ny * err
+        yn = y - ny * err
+
+        vertices = np.block([[x, x[::-1]], [yp, yn[::-1]]]).T
+        codes = np.full(len(vertices), Path.LINETO)
+        codes[0] = codes[len(x)] = Path.MOVETO
+        path = Path(vertices, codes)
+        ax.add_patch(PathPatch(path, **kwargs))
 
     def show_norm_data(self):
         idx = self.tabs.currentIndex()
@@ -313,12 +335,28 @@ class MainWindow(QMainWindow):
         self.tab_stacks[idx].setCurrentIndex(2)
 
     def reset_workspace(self):
-        subprocess.Popen([sys.executable, FILEPATH])
-        sys.exit()
+        confirm_reset = QMessageBox.warning(
+            self,
+            "Reset Application?",
+            textwrap.dedent(
+                """\
+                This operation will restart the application.
+                All current data will be lost.
+                
+                Continue?
+                """
+            ),
+            QMessageBox.Ok | QMessageBox.Cancel,
+        )
+        if confirm_reset == QMessageBox.Cancel:
+            return
+        else:
+            subprocess.Popen([sys.executable, FILEPATH])
+            sys.exit()
 
     def get_export_location(self):
         dialog = QFileDialog()
-        folder_path = dialog.getExistingDirectory(None, "", directory="")
+        folder_path = dialog.getExistingDirectory(None, "", directory=self.import_path)
         if not folder_path:
             return
         if folder_path:
