@@ -18,6 +18,37 @@ once your data is imported.
 
 ## *Data Processing and Exported Data*
 
+*A recent Open Access review paper, which has engineers from El-Cell amoungst its authors, is available for a thorough discussion and review of the collection and intrepretation of electrochemical dilatometry data.*[^3]
+
+Dilatometry Analyst primarily serves as tool for automating some simple, albiet tedious, data processing procedures. The main processes are as follows:
+
+1. *Normalization of displacement data to the first data point in the first loaded file*
+   - Since dilatometers only record relative displacement values, an initial displacement value (*h*<sub>0</sub>) needs to be defined. A safe bet for this is to set the first data point recored in your experiment as zero, which is what Dilatometry Analyst does. If you would like to normalize your data to another value that makes sense for your experiment/conditions, you can do this after exporting your processed data. Simply add (or subtract) your value to/from the "Normalized Displacement" column in the exported data. The important this is to clearly state in your Methods or Experimental Details how you defined *h*<sub>0</sub> so that your results can be reliably compared against different literature sources
+   <br/>
+   <br/>
+
+2. *Absolute displacement change and Per-cycle displacement change*
+
+   <br/>
+   <br/>
+
+3. *Baseline subtraction for **qualitative** intrepretation and comparison of dilatometry data from different systems (electrodes, electrolytes, etc.)*
+   - While it is important to not disregard irreversible changes (and their causes) occurring in the displacement over time, any drift in the signal can make comparison of cycle-to-cycle behavior difficult. If we make an assumption that the *reversible* behavior/mechanism for an electrochemical system in the dilatometer should at least be self-consistent on a cycle-to-cycle basis, it is not unreasonable to treat the drift in the system as a baseline and subtract it. Doing so will allow for at least a qualitative look at the cycle-to-cycle evolution of the displacment behavior. Dilatometry Analyst takes the 2nd to 2nd-to-last cycles (to avoid artifacts that arise when changing techniques/scanning rates) to fit your data with a simple 3rd degree polynomial to find the baseline. A low order polynomial works well to account for any minor oscillations while avoiding over-fitting. Averaging the displacement data and reporting the standard error will further aid in the interpretation of your data.
+   <br/>
+   <br/>
+   *If your choice of data presentation is the displacement data following baseline subtraction, you **must** also report the un-corrected displacement data as a Supplementary Figure at minimum to ensure full transparency.*
+   <br/>
+   <br/>
+
+4. *Averaging displacment and electrochemical data and calculating standard error*
+   - The data for the 2nd to 2nd-to-last cycle which had its the baseline removed is then averaged by Dilatometry Analyst, along with the error (plotted as the shaded regions in the preview plots), and is displayed in the "Averaged Data Preview" tab. Averaging is also performed on your electrochemical data as well.
+   <br/>
+   <br/>
+   When looking at Displacment vs. Potential curves, it is not uncommon for the data to crossover itself (this is quite common for porous carbon electrodes in supercapacitor systems, see ref. 3 for examples and citations to further examples in the literature[^3]). If there were still significant oscillations in your displacement data following baseline subtraction, this can lead to some unexpected grapical representatoins of the shaded error region in the data preview window for the Displacment vs. Potential curves. Plotting your error as simple error bars should mitigate this issue. If the problem persists, the best represention of your data will be your Displacement vs. Time.
+
+<br/>
+<br/>
+As Dilatomery Analyst is not a full-fledged data visualization tool, the preview plots shown in the application interface should only be considered a sanity check for you as the user to ensure normalizatiom and baseline subtraction occurred as you expected. These plots can be saved directly using the plot controls in the application interface, but the qualitity will be relatively poor and there are very few customization options. Plotting the exported data using your plotting software of choice is the best option to get high quality, customized plots of your processed data.
 
 <br/>
 <br/>
@@ -32,7 +63,7 @@ If you have never exported your data as .txt files from EC-Lab, the "Text File E
 
 ## *Directly Recording Signals from External Devices with EC-Lab*
 
-In order for EC-Lab to properly record the input signals from the dilatometer, it is important to load the experiment settings for the dilatometer in the "External Devices" menu of EC-Lab ***before*** starting your experiment. An example is shown here, but it is recommended to consult the dilatometer manual provided by El-Cell for further instruction.[^3]
+In order for EC-Lab to properly record the input signals from the dilatometer, it is important to load the experiment settings for the dilatometer in the "External Devices" menu of EC-Lab ***before*** starting your experiment. An example is shown here, but it is recommended to consult the dilatometer manual provided by El-Cell for further instruction.[^4]
 
 *image here*
 
@@ -42,11 +73,11 @@ If you cannot directly record the input signals from your dilatometer using EC-L
 <br/>
 <br/>
 
-## *How to Externally Combine Electrochemical and Dilatometry Data*
+## *How to Combine Electrochemical and Dilatometry Data after your Experiment has Finished*
 
 *Note: The EC-Link software from El-Cell allows for recording potential, current, and there is a mention of a method of distinguishing between cycles in the documentaion for EC-Link. So it may be possible to directly generate files with EC-Link that are compatible with Dilatometry Analyst, but this has not been tested at this point.*
 
-If it is not possible for you to directly record signals from your dilatometer using EC-Lab, or your non-BioLogic branded potentiostat's software, the data recorded using El-Cell's software (EC-Link[^4]) can still be joined with your electrochemical data. This will first require you to match the data sampling rates of your potentiostat's software with the EC-Link software as closely as you can. The images below show this process for EC-Lab's CVA technique and the EC-Link software. This will 
+If it is not possible for you to directly record signals from your dilatometer using EC-Lab, or your non-BioLogic branded potentiostat's software, the data recorded using El-Cell's software (EC-Link[^5]) can still be joined with your electrochemical data. This will first require you to match the data sampling rates of your potentiostat's software with the EC-Link software as closely as you can. The images below show this process for EC-Lab's CVA technique and the EC-Link software. This will 
 
 **images here**
 
@@ -56,7 +87,7 @@ The next step relies on the fact that EC-Link automatically records your system 
 
 **image here**
 
-From here, you will have to perform a database-style inner join on your electrochemical and dilatometry data files using the system time as the field name to join on. The Pandas library from Python has a convienent funcitnn for this (merge_asof[^5]) that will join your data files on the *nearest* key, instead of on exact matches. This will minimize the amount of data lost in the join due to any differences in the sampling rates of EC-Lab (or your pontentiostat's software) and EC-Link. You will need then need to convert the system time, or absolute time, into elapsed time (in units of seconds). At this point your files will be compatible with Dilatometry Analyst.
+From here, you will have to perform a database-style inner join on your electrochemical and dilatometry data files using the system time as the field name to join on. The Pandas library from Python has a convienent funciton for this (pandas.merge_asof[^6]) that will join your data files on the *nearest* key, instead of on exact matches. This will help to minimize the amount of data lost in the join due to any differences in the sampling rates of EC-Lab (or your pontentiostat's software) and EC-Link. You will need then need to convert the system time, or absolute time, into elapsed time (in units of seconds). At this point your files will be compatible with Dilatometry Analyst.
 <br/>
 <br/>
 
@@ -64,6 +95,8 @@ From here, you will have to perform a database-style inner join on your electroc
 
 [^1]: [ECD-3-nano Dilatometer](https://el-cell.com/products/test-cells/electrochemical-dilatometer/ecd-3-nano-aqu/)
 [^2]: [BioLogic EC-Lab](https://www.biologic.net/support-software/ec-lab-software/)
-[^3]: [El-Cell manuals](https://el-cell.com/support/manuals/)
-[^4]: [EC-Link software](https://el-cell.com/support/el-cell-software/ec-link/)
-[^5]: [Pandas merge_asof documentation](https://pandas.pydata.org/docs/reference/api/pandas.merge_asof.html)
+[^3]: [A Practical Guide for Using Electrochemical Dilatometry as Operando Tool in Battery and Supercapacitor Research](https://onlinelibrary.wiley.com/doi/full/10.1002/ente.202101120)
+[^4]: [El-Cell manuals](https://el-cell.com/support/manuals/)
+[^5]: [EC-Link software](https://el-cell.com/support/el-cell-software/ec-link/)
+[^6]: [Pandas merge_asof documentation](https://pandas.pydata.org/docs/reference/api/pandas.merge_asof.html)
+
