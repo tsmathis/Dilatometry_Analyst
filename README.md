@@ -51,7 +51,7 @@ Dilatometry Analyst primarily serves as tool for automating some simple, albiet 
    A similar calculation is performed to get the per-cycle percentage change in displacement.
    <br/>
    <br/>
-4. *Baseline subtraction for **qualitative** intrepretation and comparison of dilatometry data from different systems (electrodes, electrolytes, etc.)*
+4. *Baseline subtraction for **qualitative** interpretation and comparison of dilatometry data from different systems (electrodes, electrolytes, etc.)*
      
    While it is important to not disregard irreversible changes (and their causes) occurring in the displacement over time, any drift in the signal can make comparison of cycle-to-cycle behavior difficult. If we make an assumption that the *reversible* behavior/mechanism for an electrochemical system in the dilatometer should at least be self-consistent on a cycle-to-cycle basis, it is not unreasonable to treat the drift in the system as a baseline and subtract it. Doing so will allow for at least a qualitative look at the cycle-to-cycle evolution of the displacment behavior. Dilatometry Analyst takes the 2nd to 2nd-to-last cycles (to avoid artifacts that arise when changing techniques/scanning rates) to fit your data with a simple 3rd degree polynomial to find the baseline. A low order polynomial works well to account for any minor oscillations while avoiding over-fitting. Averaging the displacement data and reporting the standard error will further aid in the interpretation of your data.
    <br/>
@@ -65,7 +65,6 @@ Dilatometry Analyst primarily serves as tool for automating some simple, albiet 
    <br/>
    <br/>
    When looking at Displacment vs. Potential curves, it is not uncommon for the data to crossover itself (this is quite common for porous carbon electrodes in supercapacitor systems, see ref. 3 for examples and citations to further examples in the literature[^3]). If there were still significant oscillations in your displacement data following baseline subtraction, this can lead to some unexpected grapical representatoins of the shaded error region in the data preview window for the Displacment vs. Potential curves. Plotting your error as simple error bars should mitigate this issue. If the problem persists, the best represention of your data will be your Displacement vs. Time.
-
 <br/>
 <br/>
 As Dilatomery Analyst is not a full-fledged data visualization tool, the preview plots shown in the application interface should only be considered a sanity check for you as the user to ensure normalizatiom and baseline subtraction occurred as you expected. These plots can be saved directly using the plot controls in the application interface. Plotting the exported data using your plotting software of choice is the best option to get high quality, customized plots of your processed data.
