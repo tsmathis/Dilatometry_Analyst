@@ -26,7 +26,7 @@ Dilatometry Analyst primarily serves as tool for automating some simple, albiet 
         
    Since dilatometers only record relative displacement values, an initial displacement value (*h*<sub>0</sub>) needs to be defined. A safe bet for this is to set the first data point recored in your experiment as zero, which is what Dilatometry Analyst does:  
 
-   <p style="text-align: center;">Normalized displacement = <i>h<sub>n</sub></i> - <i>h<sub>0</sub></i> (<i>eq.</i> 1)</p>
+   <p align=center>Normalized displacement = <i>h<sub>n</sub></i> - <i>h<sub>0</sub></i> (<i>eq.</i> 1)</p>
 
    where, *h<sub>0</sub>* is the first displacement value recorded in the experiment and *h<sub>n</sub>* is the displacemnet recorded at each point.  
      
@@ -37,7 +37,7 @@ Dilatometry Analyst primarily serves as tool for automating some simple, albiet 
      
    Normalization is additionally performed on a per-cycle basis, taking the first point of each cycle as the zero point for each respective cycle:  
      
-   <p style="text-align: center;">Per cycle displacement change = <i>h<sub>n, c</sub></i> - <i>h<sub>0, c</sub></i>      (<i>eq.</i> 2)</p>
+   <p align=center>Per cycle displacement change = <i>h<sub>n, c</sub></i> - <i>h<sub>0, c</sub></i> (<i>eq.</i> 2)</p>
      
    where, *h<sub>0, c</sub>* is the first displacement value recorded in cycle *c* and *h<sub>n, c</sub>* is the displacemnet recorded at each point in cycle *c*.
    <br/>
@@ -46,7 +46,7 @@ Dilatometry Analyst primarily serves as tool for automating some simple, albiet 
      
    The displacment can also be expressed as a percentage, which is sometimes referred to as "Relative Strain (%)" in the literature:
      
-   <p style="text-align: center;">Percent displacement change = (<i>h<sub>n</sub></i> - <i>h<sub>0</sub></i>) / <i>h<sub>0</sub></i> * <i>100</i> (<i>eq.</i> 3)</p>
+   <p align=center>Percent displacement change = (<i>h<sub>n</sub></i> - <i>h<sub>0</sub></i>) / <i>h<sub>0</sub></i> * <i>100</i> (<i>eq.</i> 3)</p>
      
    A similar calculation is performed to get the per-cycle percentage change in displacement.
    <br/>
