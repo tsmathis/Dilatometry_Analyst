@@ -26,29 +26,27 @@ Dilatometry Analyst primarily serves as tool for automating some simple, albiet 
         
    Since dilatometers only record relative displacement values, an initial displacement value (*h*<sub>0</sub>) needs to be defined. A safe bet for this is to set the first data point recored in your experiment as zero, which is what Dilatometry Analyst does:  
 
-   <p style="text-align: center;">(1) Normalized displacement = <i>h<sub>n</sub></i> - <i>h<sub>0</sub></i></p>
+   <p style="text-align: center;">Normalized displacement = <i>h<sub>n</sub></i> - <i>h<sub>0</sub></i> (<i>eq.</i> 1)</p>
 
    where, *h<sub>0</sub>* is the first displacement value recorded in the experiment and *h<sub>n</sub>* is the displacemnet recorded at each point.  
      
    If you would like to normalize your data to another value that makes sense for your experiment/conditions, you can do this after exporting your processed data. Simply add (or subtract) your value to/from the "Normalized Displacement" column in the exported data. The important thing is to clearly state in your Methods or Experimental Details how you defined *h*<sub>0</sub> so that your results can be reliably compared against different literature sources
    <br/>
    <br/>
-
 2. *Per-cycle displacement change*
      
    Normalization is additionally performed on a per-cycle basis, taking the first point of each cycle as the zero point for each respective cycle:  
      
-   <p style="text-align: center;">(2)  = <i>h<sub>n, c</sub></i> - <i>h<sub>0, c</sub></i></p>
+   <p style="text-align: center;">Per cycle displacement change = <i>h<sub>n, c</sub></i> - <i>h<sub>0, c</sub></i>      (<i>eq.</i> 2)</p>
      
-   where, *h<sub>0, c</sub>* is the first displacement value recorded in cycle *c* and *h<sub>n, c</sub>* is the displacemnet recorded at each point in cycle *c*.  
-
+   where, *h<sub>0, c</sub>* is the first displacement value recorded in cycle *c* and *h<sub>n, c</sub>* is the displacemnet recorded at each point in cycle *c*.
    <br/>
    <br/>
 3. *Displacement change as a percentage*
      
    The displacment can also be expressed as a percentage, which is sometimes referred to as "Relative Strain (%)" in the literature:
      
-   <p style="text-align: center;">(3) Percent displacement = (<i>h<sub>n</sub></i> - <i>h<sub>0</sub></i>) / <i>h<sub>0</sub></i> * <i>100</i></p>
+   <p style="text-align: center;">Percent displacement change = (<i>h<sub>n</sub></i> - <i>h<sub>0</sub></i>) / <i>h<sub>0</sub></i> * <i>100</i> (<i>eq.</i> 3)</p>
      
    A similar calculation is performed to get the per-cycle percentage change in displacement.
    <br/>
@@ -61,7 +59,6 @@ Dilatometry Analyst primarily serves as tool for automating some simple, albiet 
    *If your choice of data presentation is the displacement data following baseline subtraction, you **must** also report the un-corrected displacement data as a Supplementary Figure at minimum to ensure full transparency.*
    <br/>
    <br/>
-
 5. *Averaging displacment and electrochemical data and calculating standard error*
      
    The data for the 2nd to 2nd-to-last cycle which had its the baseline removed is then averaged by Dilatometry Analyst, along with the error (plotted as the shaded regions in the preview plots), and is displayed in the "Averaged Data Preview" tab. Averaging is also performed on your electrochemical data as well.
