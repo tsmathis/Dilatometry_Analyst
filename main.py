@@ -28,6 +28,11 @@ from PyQt5.QtWidgets import (
 
 matplotlib.use("Qt5Agg")
 
+if hasattr(Qt, "AA_EnableHighDpiScaling"):
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+if hasattr(Qt, "AA_UseHighDpiPixmaps"):
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+
 FILEPATH = os.path.abspath(__file__)
 basedir = os.path.dirname(__file__)
 
