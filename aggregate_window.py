@@ -23,6 +23,8 @@ class AggregateWindow(QMainWindow):
     def __init__(self, aggregate_data):
         super().__init__()
 
+        self.data = aggregate_data
+
         menu = self.menuBar()
         documentation_action = QAction("Documentation", self)
         documentation_action.triggered.connect(self.open_documentation)
@@ -41,10 +43,10 @@ class AggregateWindow(QMainWindow):
         stack.setMinimumSize(400, 400)
         stack.setLayout(self.stack_layout)
         buttons.setLayout(button_layout)
-        buttons.setFixedWidth(350)
+        buttons.setFixedWidth(175)
 
+        # Create queue of main windows to display data
         window_queue = deque(maxlen=3)
-
         for i in range(3):
             fig = MplCanvas()
             fig_toolbar = NavigationToolbar(fig, self)
@@ -56,16 +58,70 @@ class AggregateWindow(QMainWindow):
             self.stack_layout.addWidget(window)
             window_queue.append(fig)
 
+        " Create queue of preview widgets"
         widget_slot_queue = deque(maxlen=3)
-
-        page_layout.addWidget(stack)
-        page_layout.addWidget(buttons)
-
         for i in range(3):
             button = ClickableWidget(idx=i)
             button.clicked.connect(self.change_active_view)
             button_layout.addWidget(button)
             widget_slot_queue.append(button)
+
+        # Plot all averaged CVs
+        main, preview = window_queue.popleft(), widget_slot_queue.popleft()
+
+        for key in self.data:
+            main.axes.plot(
+                self.data[key].averaged_data["Average Potential (V)"],
+                self.data[key].averaged_data["Average Current (mA)"],
+                label=key,
+            )
+            main.axes.legend()
+            main.axes.set_xlabel("Average Potential (V)")
+            main.axes.set_ylabel("Average Current (mA)")
+
+            preview.axes.plot(
+                self.data[key].averaged_data["Average Potential (V)"],
+                self.data[key].averaged_data["Average Current (mA)"],
+            )
+
+        # Plot all average disp vs. potential curves
+        main, preview = window_queue.popleft(), widget_slot_queue.popleft()
+
+        for key in self.data:
+            main.axes.plot(
+                self.data[key].averaged_data["Average Potential (V)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+                label=key,
+            )
+            main.axes.legend()
+            main.axes.set_xlabel("Average Potential (V)")
+            main.axes.set_ylabel("Average Displacement (%)")
+
+            preview.axes.plot(
+                self.data[key].averaged_data["Average Potential (V)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+            )
+
+        # Plot all average disp vs. Q curves
+        main, preview = window_queue.popleft(), widget_slot_queue.popleft()
+
+        for key in self.data:
+            main.axes.plot(
+                self.data[key].averaged_data["Average Charge (C)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+                label=key,
+            )
+            main.axes.legend()
+            main.axes.set_xlabel("Average Charge (C)")
+            main.axes.set_ylabel("Average Displacement (%)")
+
+            preview.axes.plot(
+                self.data[key].averaged_data["Average Charge (C)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+            )
+
+        page_layout.addWidget(stack)
+        page_layout.addWidget(buttons)
 
         export = QPushButton("Export Data")
         export.setStyleSheet("background-color: #007AFF")

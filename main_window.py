@@ -251,7 +251,7 @@ class MainWindow(QMainWindow):
         self.tab_stacks[idx].setCurrentIndex(2)
 
     def show_aggregate_data(self):
-        self.aggregate_window = AggregateWindow(aggregate_data=None)
+        self.aggregate_window = AggregateWindow(aggregate_data=self.processed_data)
         self.aggregate_window.show()
 
     def get_export_location(self):
