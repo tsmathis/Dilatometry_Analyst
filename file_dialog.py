@@ -25,7 +25,7 @@ class FileDialog(QMainWindow):
         self.setWindowTitle("Dilatometry Analyst: Data Import")
         self.setMinimumSize(600, 400)
 
-        self.file_params = {}
+        self.file_params = []
         self.processed_data = {}
 
         menu = self.menuBar()
@@ -86,15 +86,15 @@ class FileDialog(QMainWindow):
         files, _ = QFileDialog.getOpenFileNames(self)
         for idx, path in enumerate(files):
             disp = FileLabelCombo(file_text=path)
-            self.file_params[idx] = disp
+            self.file_params.append(disp)
             self.mid_layout.addWidget(disp)
 
     def process_data(self):
         ref_thickness = float(self.baseline_input.text())
 
-        for key in self.file_params:
-            file_key = self.file_params[key].file_label.text()
-            file_str = self.file_params[key].file_text
+        for idx in range(len(self.file_params)):
+            file_key = self.file_params[idx].file_label.text()
+            file_str = self.file_params[idx].file_text
 
             data = Dilatometry(ref_thickness=ref_thickness)
             data.load_data(file_str=file_str)

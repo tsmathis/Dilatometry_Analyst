@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         self.tabs.setStyleSheet(
             """
             QTabWidget::tab-bar{
-                left: 210px
+                left: 55px
                 }
                 
             QTabBar::tab{
@@ -97,10 +97,10 @@ class MainWindow(QMainWindow):
         container.setLayout(self.page_layout)
         self.setCentralWidget(container)
 
-        file_label = QLabel(parent=container, text="Files:")
+        file_label = QLabel(parent=container, text="Data:")
         file_label.setFixedHeight(41)
         file_label.setFixedWidth(49)
-        file_label.move(165, 10)
+        file_label.move(10, 15)
         file_label.setFont(QFont("Arial", 10))
         file_label.setAlignment(Qt.AlignCenter)
 
@@ -252,6 +252,7 @@ class MainWindow(QMainWindow):
 
     def show_aggregate_data(self):
         self.aggregate_window = AggregateWindow(aggregate_data=self.processed_data)
+        self.aggregate_window.update_plots()
         self.aggregate_window.show()
 
     def get_export_location(self):
