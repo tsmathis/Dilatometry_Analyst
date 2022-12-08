@@ -5,6 +5,7 @@ import textwrap
 
 from ui_elements import MplCanvas, MultiMplCanvas
 from aggregate_window import AggregateWindow
+from derivative_window import DerivativeWindow
 
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
@@ -92,6 +93,12 @@ class MainWindow(QMainWindow):
         self.aggregate_button.setFont(QFont("Arial", 11))
         self.aggregate_button.clicked.connect(self.show_aggregate_data)
         bottom_buttons.addWidget(self.aggregate_button)
+
+        self.derivative_button = QPushButton("Displacement Derivatives")
+        self.derivative_button.setFixedHeight(41)
+        self.derivative_button.setFont(QFont("Arial", 11))
+        self.derivative_button.clicked.connect(self.show_derivative_data)
+        bottom_buttons.addWidget(self.derivative_button)
 
         container = QWidget()
         container.setLayout(self.page_layout)
@@ -254,6 +261,10 @@ class MainWindow(QMainWindow):
         self.aggregate_window = AggregateWindow(aggregate_data=self.processed_data)
         self.aggregate_window.update_plots()
         self.aggregate_window.show()
+
+    def show_derivative_data(self):
+        self.derivative_window = DerivativeWindow(derivative_data=self.processed_data)
+        self.derivative_window.show()
 
     def get_export_location(self):
         dialog = QFileDialog()

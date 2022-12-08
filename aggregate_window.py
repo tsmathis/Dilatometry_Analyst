@@ -1,7 +1,6 @@
 import colorcet as cc
 import matplotlib.pyplot as plt
 
-from collections import deque
 from ui_elements import MplCanvas, ClickableWidget
 from plotting_utils import get_color_cycle
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -10,8 +9,6 @@ from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont, QDesktopServices
 from PyQt5.QtWidgets import (
     QAction,
-    QLineEdit,
-    QFileDialog,
     QMainWindow,
     QPushButton,
     QComboBox,
@@ -20,7 +17,6 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QStackedLayout,
     QWidget,
-    QMessageBox,
 )
 
 colorcet_cmaps = {
@@ -34,7 +30,6 @@ colorcet_cmaps = {
     "Linear BGY": cc.m_bgy,
     "Linear BMY": cc.m_bmy,
     "Rainbow": cc.m_rainbow4,
-    "Cyclic Colorwheel": cc.m_colorwheel,
 }
 
 
@@ -50,7 +45,7 @@ class AggregateWindow(QMainWindow):
         help_menu = menu.addMenu("Help")
         help_menu.addAction(documentation_action)
 
-        self.setWindowTitle("Dilatometry Analyst")
+        self.setWindowTitle("Dilatometry Analyst: Aggregate Data")
         self.resize(1200, 677)
 
         page_layout = QHBoxLayout()
@@ -70,7 +65,6 @@ class AggregateWindow(QMainWindow):
                 "Linear BGY",
                 "Linear BMY",
                 "Rainbow",
-                "Cyclic Colorwheel",
                 "tab10",
                 "tab20",
                 "tab20b",
@@ -85,7 +79,8 @@ class AggregateWindow(QMainWindow):
                 "Dark2",
             ]
         )
-        self.color_dropdown.setCurrentIndex(0)
+
+        self.color_dropdown.setCurrentIndex(10)
         button_layout.addWidget(self.color_dropdown)
 
         self.color_dropdown.currentIndexChanged.connect(self.update_plots)
@@ -101,6 +96,12 @@ class AggregateWindow(QMainWindow):
         self.main_displays = {}
         self.preview_widgets = {}
 
+        button_labels = [
+            QLabel("Voltammograms"),
+            QLabel("Disp. vs. V"),
+            QLabel("Disp. vs. Q"),
+        ]
+
         for i, key in enumerate(keys):
             fig = MplCanvas()
             fig_toolbar = NavigationToolbar(fig, self)
@@ -114,6 +115,9 @@ class AggregateWindow(QMainWindow):
 
             button = ClickableWidget(idx=i)
             button.clicked.connect(self.change_active_view)
+            button_layout.addWidget(button_labels[i])
+            button_labels[i].setFont(QFont("Arial", 12))
+            button_labels[i].setAlignment(Qt.AlignCenter)
             button_layout.addWidget(button)
             self.preview_widgets[key] = button
 
@@ -164,7 +168,7 @@ class AggregateWindow(QMainWindow):
                 label=key,
             )
             self.main_displays["CVs"].axes.legend()
-            self.main_displays["CVs"].axes.set_xlabel("Average Potential (V)")
+            self.main_displays["CVs"].axes.set_xlabel("Potential (V)")
             self.main_displays["CVs"].axes.set_ylabel("Average Current (mA)")
 
             self.preview_widgets["CVs"].axes.plot(
@@ -181,7 +185,7 @@ class AggregateWindow(QMainWindow):
                 label=key,
             )
             self.main_displays["disp_V"].axes.legend()
-            self.main_displays["disp_V"].axes.set_xlabel("Average Potential (V)")
+            self.main_displays["disp_V"].axes.set_xlabel("Potential (V)")
             self.main_displays["disp_V"].axes.set_ylabel("Average Displacement (%)")
 
             self.preview_widgets["disp_V"].axes.plot(
@@ -198,7 +202,7 @@ class AggregateWindow(QMainWindow):
                 label=key,
             )
             self.main_displays["disp_Q"].axes.legend()
-            self.main_displays["disp_Q"].axes.set_xlabel("Average Charge (C)")
+            self.main_displays["disp_Q"].axes.set_xlabel("Charge (C)")
             self.main_displays["disp_Q"].axes.set_ylabel("Average Displacement (%)")
 
             self.preview_widgets["disp_Q"].axes.plot(

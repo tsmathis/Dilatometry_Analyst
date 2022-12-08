@@ -93,10 +93,11 @@ class Dilatometry:
         arr.mask = True
         for idx, l in enumerate(arrs):
             arr[: len(l), idx] = l
-        return arr.mean(axis=-1), arr.std(axis=-1)
+        return arr.mean(axis=1), arr.std(axis=1)
 
     def average_data(self):
-        # Averaging all data and getting std dev, excluding first cycle
+        # Averaging all data and getting std dev, excluding first and last cycle
+        # to avoid weirdness that comes when switching scan rates/cycling procedure
         ref_data = self.data_minus_baseline.copy()
 
         time = []
@@ -106,7 +107,7 @@ class Dilatometry:
         disp = []
         percent_disp = []
 
-        for cycle in self.cycle_num[1:]:
+        for cycle in self.cycle_num[1:-1]:
             # Rormalize time values for each cycle for averaging
             time.append(
                 np.asarray(
@@ -170,3 +171,9 @@ class Dilatometry:
         )
 
         self.averaged_data = avg_df
+
+    def calc_derivatives(self):
+        dt = np.gradient(self.averaged_data["Average Time (s)"])
+        dD = np.gradient(self.averaged_data["Average Displacement (um)"])
+
+        self.averaged_data["dD/dt"] = dD / dt

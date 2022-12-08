@@ -101,6 +101,7 @@ class FileDialog(QMainWindow):
             data.normalize_data()
             data.subtract_baseline()
             data.average_data()
+            data.calc_derivatives()
 
             self.processed_data[file_key] = data
 
