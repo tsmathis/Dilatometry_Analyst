@@ -45,6 +45,7 @@ class FileLabelCombo(QWidget):
     def __init__(self, parent=None, file_text=None):
         QWidget.__init__(self, parent=parent)
         self.file_text = file_text
+        self.setMinimumHeight(50)
 
         disp_text = ""
         limit = 40
@@ -55,7 +56,9 @@ class FileLabelCombo(QWidget):
 
         self.file_display = QLabel(disp_text)
         self.file_label = QLineEdit("Enter a file label, e.g., '5 mV/s', '0.5 C', etc.")
+        self.file_label.setFixedWidth(60)
         self.file_type = QComboBox()
+        self.file_type.setFixedWidth(60)
         self.file_type.addItems(["CV", "CCCD"])
 
         layout = QHBoxLayout(self)

@@ -155,22 +155,20 @@ class Dilatometry:
         avg_disp = avg_disp - avg_disp[0]
         avg_percent_disp = avg_percent_disp - avg_percent_disp[0]
 
-        avg_df = pd.DataFrame(
+        self.averaged_data = pd.DataFrame(
             {
                 "Average Time (s)": avg_time,
                 "Average Potential (V)": avg_potential,
                 "Average Current (mA)": avg_current,
+                "Current Stand Dev (mA)": dev_current,
                 "Average Charge (C)": avg_charge,
                 "Charge Stand Dev (C)": dev_charge,
-                "Current Stand Dev (mA)": dev_current,
                 "Average Displacement (um)": avg_disp,
                 "Displacement Stand Dev (um)": dev_disp,
                 "Average Displacement (%)": avg_percent_disp,
                 "Displacement Stand Dev (%)": dev_percent_disp,
             }
         )
-
-        self.averaged_data = avg_df
 
     def calc_derivatives(self):
         dt = np.gradient(self.averaged_data["Average Time (s)"])

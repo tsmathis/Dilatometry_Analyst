@@ -6,6 +6,7 @@ import textwrap
 from ui_elements import MplCanvas, MultiMplCanvas
 from aggregate_window import AggregateWindow
 from derivative_window import DerivativeWindow
+from file_export import export_data
 
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
@@ -99,6 +100,12 @@ class MainWindow(QMainWindow):
         self.derivative_button.setFont(QFont("Arial", 11))
         self.derivative_button.clicked.connect(self.show_derivative_data)
         bottom_buttons.addWidget(self.derivative_button)
+
+        self.export_button = QPushButton("Export Data")
+        self.export_button.setFixedHeight(41)
+        self.export_button.setFont(QFont("Arial", 11))
+        self.export_button.clicked.connect(self.get_export_location)
+        bottom_buttons.addWidget(self.export_button)
 
         container = QWidget()
         container.setLayout(self.page_layout)
@@ -267,30 +274,13 @@ class MainWindow(QMainWindow):
         self.derivative_window.show()
 
     def get_export_location(self):
-        dialog = QFileDialog()
-        folder_path = dialog.getExistingDirectory(None, "", directory=self.import_path)
-        if not folder_path:
+        file_name, filters = QFileDialog.getSaveFileName(self, filter="Excel (*.xlsx)")
+        if not file_name:
             return
-        if folder_path:
-            if os.path.exists(folder_path + "/Normalized dilatometry data.xlsx"):
-                write_confirmed = QMessageBox.question(
-                    self,
-                    "Overwrite file?",
-                    (
-                        textwrap.dedent(
-                            f"""\
-                            The files: 
-                            '{folder_path + '/Normalized dilatometry data.xlsx'}', 
-                            '{folder_path + '/Dilatometry data minus baseline.xlsx'}',
-                            and '{folder_path + '/Averaged dilatometry data.xlsx'}' already exist. 
-                            Are you sure you want to overwrite them?"""
-                        )
-                    ),
-                )
-                if write_confirmed == QMessageBox.No:
-                    return
-            else:
-                write_confirmed = True
-
-        if write_confirmed:
-            self.dilatometry_data.export_data(destination=folder_path + "/")
+        file_name = file_name.strip(".xlsx")
+        export_data(
+            norm_file=f"{file_name}_Normalized_data",
+            baseline_file=f"{file_name}_Data_minus_baseline",
+            average_file=f"{file_name}_Averaged_data",
+            processed_data=self.processed_data,
+        )

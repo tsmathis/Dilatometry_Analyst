@@ -63,7 +63,7 @@ class DerivativeWindow(QMainWindow):
 
             dDdt_vs_i.axes.plot(
                 self.data[key].averaged_data["Average Current (mA)"],
-                self.data[key].averaged_data["dD/dt"],
+                self.data[key].averaged_data["dD/dt"] * -1,
             )
             page_layout.addWidget(window2, 1, i)
 
