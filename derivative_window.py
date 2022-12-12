@@ -34,7 +34,7 @@ class DerivativeWindow(QMainWindow):
         help_menu.addAction(documentation_action)
 
         self.setWindowTitle("Dilatometry Analys: Displacement Derivatives")
-        self.resize(1200, 677)
+        self.resize(1400, 877)
 
         page_layout = QGridLayout()
 
@@ -50,7 +50,12 @@ class DerivativeWindow(QMainWindow):
             dDdt_vs_V.axes.plot(
                 self.data[key].averaged_data["Average Potential (V)"],
                 self.data[key].averaged_data["dD/dt"],
+                label=key,
             )
+            dDdt_vs_V.axes.set_xlabel("Potential (V)")
+            dDdt_vs_V.axes.set_ylabel("dD/dt ($\mu$m/s)")
+            dDdt_vs_V.axes.legend()
+
             page_layout.addWidget(window, 0, i)
 
             dDdt_vs_i = MplCanvas()
@@ -64,7 +69,12 @@ class DerivativeWindow(QMainWindow):
             dDdt_vs_i.axes.plot(
                 self.data[key].averaged_data["Average Current (mA)"],
                 self.data[key].averaged_data["dD/dt"] * -1,
+                label=key,
             )
+            dDdt_vs_i.axes.set_xlabel("Current (mA)")
+            dDdt_vs_i.axes.set_ylabel("-dD/dt ($\mu$m/s)")
+            dDdt_vs_i.axes.legend()
+
             page_layout.addWidget(window2, 1, i)
 
         widget = QWidget()
