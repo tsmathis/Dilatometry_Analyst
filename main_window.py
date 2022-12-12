@@ -1,9 +1,10 @@
 import os
 import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 import textwrap
 
-from ui_elements import MplCanvas, MultiMplCanvas
+from ui_elements import MplCanvas, MultiMplCanvas, FigureWindow
 from aggregate_window import AggregateWindow
 from derivative_window import DerivativeWindow
 from file_export import export_data
@@ -44,7 +45,6 @@ class MainWindow(QMainWindow):
         help_menu.addAction(documentation_action)
 
         self.setWindowTitle("Dilatometry Analyst")
-        self.resize(1200, 677)
 
         self.page_layout = QVBoxLayout()
         bottom_buttons = QHBoxLayout()
@@ -133,26 +133,29 @@ class MainWindow(QMainWindow):
             self.tab_stacks[idx] = stack
             idx += 1
 
-            norm_widget = QWidget()
-            norm_layout = QVBoxLayout()
-            norm_widget.setLayout(norm_layout)
-            norm_preview = MplCanvas()
-            norm_toolbar = NavigationToolbar(norm_preview, self)
-            norm_preview.axes.plot(
+            # norm_widget = QWidget()
+            # norm_layout = QVBoxLayout()
+            # norm_widget.setLayout(norm_layout)
+            norm_fig, norm_preview = plt.subplots(
+                figsize=(12, 6), dpi=150, constrained_layout=True
+            )
+            # norm_toolbar = NavigationToolbar(norm_preview, self)
+            norm_preview.plot(
                 self.processed_data[key].data["time/s"],
                 self.processed_data[key].data["Percent change displacement (total)"],
             )
-            norm_preview.axes.set_xlabel("Time (s)")
-            norm_preview.axes.set_ylabel("Relative Displacement (%)")
-            norm_layout.addWidget(norm_toolbar)
-            norm_layout.addWidget(norm_preview)
+            norm_preview.set_xlabel("Time (s)")
+            norm_preview.set_ylabel("Relative Displacement (%)")
+            # norm_layout.addWidget(norm_toolbar)
+            # norm_layout.addWidget(norm_preview)
+            norm_widget = FigureWindow(norm_fig)
             stack.addWidget(norm_widget)
 
             baseline_widget = QWidget()
             baseline_layout = QVBoxLayout()
             baseline_widget.setLayout(baseline_layout)
             baseline_preview = MplCanvas()
-            baseline_toolbar = NavigationToolbar(baseline_preview, self)
+            # baseline_toolbar = NavigationToolbar(baseline_preview, self)
             baseline_preview.axes.plot(
                 self.processed_data[key].data_minus_baseline["time/s"],
                 self.processed_data[key].data_minus_baseline[
@@ -161,7 +164,7 @@ class MainWindow(QMainWindow):
             )
             baseline_preview.axes.set_xlabel("Time (s)")
             baseline_preview.axes.set_ylabel("Relative Displacement (%)")
-            baseline_layout.addWidget(baseline_toolbar)
+            # baseline_layout.addWidget(baseline_toolbar)
             baseline_layout.addWidget(baseline_preview)
             stack.addWidget(baseline_widget)
 
@@ -169,7 +172,7 @@ class MainWindow(QMainWindow):
             avg_layout = QVBoxLayout()
             avg_widget.setLayout(avg_layout)
             avg_preview = MultiMplCanvas()
-            avg_toolbar = NavigationToolbar(avg_preview, self)
+            # avg_toolbar = NavigationToolbar(avg_preview, self)
 
             avg_preview.axes1.plot(
                 self.processed_data[key].averaged_data["Average Potential (V)"],
@@ -225,7 +228,7 @@ class MainWindow(QMainWindow):
             )
             avg_preview.axes3.set_xlabel("Potential (V)")
             avg_preview.axes3.set_ylabel("Averaged Relative Displacement (%)")
-            avg_layout.addWidget(avg_toolbar)
+            # avg_layout.addWidget(avg_toolbar)
             avg_layout.addWidget(avg_preview)
             stack.addWidget(avg_widget)
 

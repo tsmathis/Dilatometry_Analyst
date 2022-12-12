@@ -46,7 +46,7 @@ class AggregateWindow(QMainWindow):
         help_menu.addAction(documentation_action)
 
         self.setWindowTitle("Dilatometry Analyst: Aggregate Data")
-        self.resize(1200, 677)
+        self.resize(960, 677)
 
         page_layout = QHBoxLayout()
         button_layout = QVBoxLayout()
@@ -92,7 +92,7 @@ class AggregateWindow(QMainWindow):
         buttons.setLayout(button_layout)
         buttons.setFixedWidth(175)
 
-        keys = ["CVs", "disp_V", "disp_Q"]
+        keys = ["CVs", "disp_V", "disp_Q", "disp_t"]
         self.main_displays = {}
         self.preview_widgets = {}
 
@@ -100,15 +100,16 @@ class AggregateWindow(QMainWindow):
             QLabel("Voltammograms"),
             QLabel("Disp. vs. V"),
             QLabel("Disp. vs. Q"),
+            QLabel("Disp. vs. t"),
         ]
 
         for i, key in enumerate(keys):
-            fig = MplCanvas()
-            fig_toolbar = NavigationToolbar(fig, self)
             window = QWidget()
             window_layout = QVBoxLayout()
             window.setLayout(window_layout)
-            window_layout.addWidget(fig_toolbar)
+
+            fig = MplCanvas()
+
             window_layout.addWidget(fig)
             self.stack_layout.addWidget(window)
             self.main_displays[key] = fig
@@ -158,6 +159,9 @@ class AggregateWindow(QMainWindow):
 
         self.main_displays["disp_Q"].axes.clear()
         self.preview_widgets["disp_Q"].axes.clear()
+
+        self.main_displays["disp_t"].axes.clear()
+        self.preview_widgets["disp_t"].axes.clear()
 
         # Replot updated data
         for i, key in enumerate(self.data):
@@ -211,6 +215,23 @@ class AggregateWindow(QMainWindow):
                 color=colors[i]["color"],
             )
 
+        for i, key in enumerate(self.data):
+            self.main_displays["disp_t"].axes.plot(
+                self.data[key].averaged_data["Average Time (s)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+                color=colors[i]["color"],
+                label=key,
+            )
+            self.main_displays["disp_t"].axes.legend()
+            self.main_displays["disp_t"].axes.set_xlabel("Time (s)")
+            self.main_displays["disp_t"].axes.set_ylabel("Average Displacement (%)")
+
+            self.preview_widgets["disp_t"].axes.plot(
+                self.data[key].averaged_data["Average Time (s)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+                color=colors[i]["color"],
+            )
+
         # Update displayed plots in GUI
         self.main_displays["CVs"].draw_idle()
         self.preview_widgets["CVs"].draw_idle()
@@ -220,6 +241,9 @@ class AggregateWindow(QMainWindow):
 
         self.main_displays["disp_Q"].draw_idle()
         self.preview_widgets["disp_Q"].draw_idle()
+
+        self.main_displays["disp_t"].draw_idle()
+        self.preview_widgets["disp_t"].draw_idle()
 
     def get_export_location(self):
         pass
