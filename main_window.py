@@ -1,17 +1,8 @@
-import os
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-import textwrap
-
-from ui_elements import MplCanvas, MultiMplCanvas, FigureWindow
+from ui_elements import FigureWindow
 from aggregate_window import AggregateWindow
 from derivative_window import DerivativeWindow
 from file_export import export_data
 
-from matplotlib.path import Path
-from matplotlib.patches import PathPatch
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont, QDesktopServices
 from PyQt5.QtWidgets import (
@@ -25,10 +16,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QStackedLayout,
     QWidget,
-    QMessageBox,
 )
-
-matplotlib.use("Qt5Agg")
 
 
 class MainWindow(QMainWindow):
@@ -104,6 +92,7 @@ class MainWindow(QMainWindow):
         self.export_button = QPushButton("Export Data")
         self.export_button.setFixedHeight(41)
         self.export_button.setFont(QFont("Arial", 11))
+        self.export_button.setStyleSheet("background-color: #007AFF")
         self.export_button.clicked.connect(self.get_export_location)
         bottom_buttons.addWidget(self.export_button)
 
@@ -133,127 +122,93 @@ class MainWindow(QMainWindow):
             self.tab_stacks[idx] = stack
             idx += 1
 
-            # norm_widget = QWidget()
-            # norm_layout = QVBoxLayout()
-            # norm_widget.setLayout(norm_layout)
-            norm_fig, norm_preview = plt.subplots(
-                figsize=(12, 6), dpi=150, constrained_layout=True
+            norm_widget = FigureWindow(
+                x=self.processed_data[key].data["time/s"],
+                y=self.processed_data[key].data["Percent change displacement (total)"],
+                xlabel="Time (s)",
+                ylabel="Relative Displacement (%)",
             )
-            # norm_toolbar = NavigationToolbar(norm_preview, self)
-            norm_preview.plot(
-                self.processed_data[key].data["time/s"],
-                self.processed_data[key].data["Percent change displacement (total)"],
-            )
-            norm_preview.set_xlabel("Time (s)")
-            norm_preview.set_ylabel("Relative Displacement (%)")
-            # norm_layout.addWidget(norm_toolbar)
-            # norm_layout.addWidget(norm_preview)
-            norm_widget = FigureWindow(norm_fig)
+
             stack.addWidget(norm_widget)
 
-            baseline_widget = QWidget()
-            baseline_layout = QVBoxLayout()
-            baseline_widget.setLayout(baseline_layout)
-            baseline_preview = MplCanvas()
-            # baseline_toolbar = NavigationToolbar(baseline_preview, self)
-            baseline_preview.axes.plot(
-                self.processed_data[key].data_minus_baseline["time/s"],
-                self.processed_data[key].data_minus_baseline[
+            baseline_widget = FigureWindow(
+                x=self.processed_data[key].data_minus_baseline["time/s"],
+                y=self.processed_data[key].data_minus_baseline[
                     "Percent change minus baseline"
                 ],
+                xlabel="Time (s)",
+                ylabel="Relative Displacement (%)",
             )
-            baseline_preview.axes.set_xlabel("Time (s)")
-            baseline_preview.axes.set_ylabel("Relative Displacement (%)")
-            # baseline_layout.addWidget(baseline_toolbar)
-            baseline_layout.addWidget(baseline_preview)
             stack.addWidget(baseline_widget)
 
-            avg_widget = QWidget()
-            avg_layout = QVBoxLayout()
-            avg_widget.setLayout(avg_layout)
-            avg_preview = MultiMplCanvas()
-            # avg_toolbar = NavigationToolbar(avg_preview, self)
-
-            avg_preview.axes1.plot(
-                self.processed_data[key].averaged_data["Average Potential (V)"],
-                self.processed_data[key].averaged_data["Average Current (mA)"],
+            avg_widget = FigureWindow(
+                x=self.processed_data[key].averaged_data["Average Potential (V)"],
+                y=self.processed_data[key].averaged_data["Average Current (mA)"],
+                xlabel="Potential (V)",
+                ylabel="Averaged Current (mA)",
+                subplots=3,
             )
-            avg_preview.axes1.fill_between(
-                self.processed_data[key].averaged_data["Average Potential (V)"],
-                (
-                    self.processed_data[key].averaged_data["Average Current (mA)"]
-                    + self.processed_data[key].averaged_data["Current Stand Dev (mA)"]
-                ),
-                (
-                    self.processed_data[key].averaged_data["Average Current (mA)"]
-                    - self.processed_data[key].averaged_data["Current Stand Dev (mA)"]
-                ),
-                alpha=0.4,
-            )
-            avg_preview.axes1.set_xlabel("Potential (V)")
-            avg_preview.axes1.set_ylabel("Averaged Current (mA)")
 
-            avg_preview.axes2.plot(
+            axes2 = avg_widget.fig.add_subplot(1, 3, 2)
+
+            axes2.plot(
                 self.processed_data[key].averaged_data["Average Time (s)"],
                 self.processed_data[key].averaged_data["Average Displacement (%)"],
             )
-            avg_preview.axes2.fill_between(
-                self.processed_data[key].averaged_data["Average Time (s)"],
-                (
-                    self.processed_data[key].averaged_data["Average Displacement (%)"]
-                    + self.processed_data[key].averaged_data[
-                        "Displacement Stand Dev (%)"
-                    ]
-                ),
-                (
-                    self.processed_data[key].averaged_data["Average Displacement (%)"]
-                    - self.processed_data[key].averaged_data[
-                        "Displacement Stand Dev (%)"
-                    ]
-                ),
-                alpha=0.4,
-            )
-            avg_preview.axes2.set_xlabel("Time (s)")
-            avg_preview.axes2.set_ylabel("Averaged Relative Displacement (%)")
+            axes2.set_xlabel("Time (s)")
+            axes2.set_ylabel("Averaged Relative Displacement (%)")
 
-            avg_preview.axes3.plot(
+            axes3 = avg_widget.fig.add_subplot(1, 3, 3)
+            axes3.plot(
                 self.processed_data[key].averaged_data["Average Potential (V)"],
                 self.processed_data[key].averaged_data["Average Displacement (%)"],
             )
-            x = self.processed_data[key].averaged_data["Average Potential (V)"]
-            y = self.processed_data[key].averaged_data["Average Displacement (%)"]
-            err = self.processed_data[key].averaged_data["Displacement Stand Dev (%)"]
-            self.draw_error_band(
-                ax=avg_preview.axes3, x=x, y=y, err=err, edgecolor="none", alpha=0.4
-            )
-            avg_preview.axes3.set_xlabel("Potential (V)")
-            avg_preview.axes3.set_ylabel("Averaged Relative Displacement (%)")
-            # avg_layout.addWidget(avg_toolbar)
-            avg_layout.addWidget(avg_preview)
+
+            axes3.set_xlabel("Potential (V)")
+            axes3.set_ylabel("Averaged Relative Displacement (%)")
+
             stack.addWidget(avg_widget)
-
             self.tabs.addTab(preview, key)
 
-    def draw_error_band(self, ax, x, y, err, **kwargs):
-        # Calculate normals via centered finite differences (except the first point
-        # which uses a forward difference and the last point which uses a backward
-        # difference).
-        x = np.array(x)
-        y = np.array(y)
-        dx = np.concatenate([[x[1] - x[0]], x[2:] - x[:-2], [x[-1] - x[-2]]])
-        dy = np.concatenate([[y[1] - y[0]], y[2:] - y[:-2], [y[-1] - y[-2]]])
-        l = np.hypot(dx, dy)
-        ny = -dx / l
+            # avg_preview.axes1.fill_between(
+            #     self.processed_data[key].averaged_data["Average Potential (V)"],
+            #     (
+            #         self.processed_data[key].averaged_data["Average Current (mA)"]
+            #         + self.processed_data[key].averaged_data["Current Stand Dev (mA)"]
+            #     ),
+            #     (
+            #         self.processed_data[key].averaged_data["Average Current (mA)"]
+            #         - self.processed_data[key].averaged_data["Current Stand Dev (mA)"]
+            #     ),
+            #     alpha=0.4,
+            # )
 
-        # end points of errors
-        yp = y + ny * err
-        yn = y - ny * err
+            # avg_preview.axes2.fill_between(
+            #     self.processed_data[key].averaged_data["Average Time (s)"],
+            #     (
+            #         self.processed_data[key].averaged_data["Average Displacement (%)"]
+            #         + self.processed_data[key].averaged_data[
+            #             "Displacement Stand Dev (%)"
+            #         ]
+            #     ),
+            #     (
+            #         self.processed_data[key].averaged_data["Average Displacement (%)"]
+            #         - self.processed_data[key].averaged_data[
+            #             "Displacement Stand Dev (%)"
+            #         ]
+            #     ),
+            #     alpha=0.4,
+            # )
 
-        vertices = np.block([[x, x[::-1]], [yp, yn[::-1]]]).T
-        codes = np.full(len(vertices), Path.LINETO)
-        codes[0] = codes[len(x)] = Path.MOVETO
-        path = Path(vertices, codes)
-        ax.add_patch(PathPatch(path, **kwargs))
+            # x = self.processed_data[key].averaged_data["Average Potential (V)"]
+            # y = self.processed_data[key].averaged_data["Average Displacement (%)"]
+            # err = self.processed_data[key].averaged_data["Displacement Stand Dev (%)"]
+            # self.draw_error_band(
+            #     ax=avg_preview.axes3, x=x, y=y, err=err, edgecolor="none", alpha=0.4
+            # )
+
+            # # avg_layout.addWidget(avg_toolbar)
+            # avg_layout.addWidget(avg_preview)
 
     def show_norm_data(self):
         idx = self.tabs.currentIndex()

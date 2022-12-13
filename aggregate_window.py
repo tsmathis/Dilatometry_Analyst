@@ -1,9 +1,8 @@
 import colorcet as cc
 import matplotlib.pyplot as plt
 
-from ui_elements import MplCanvas, ClickableWidget
+from ui_elements import FigureWindow, ClickableWidget
 from plotting_utils import get_color_cycle
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont, QDesktopServices
@@ -108,7 +107,7 @@ class AggregateWindow(QMainWindow):
             window_layout = QVBoxLayout()
             window.setLayout(window_layout)
 
-            fig = MplCanvas()
+            fig = FigureWindow()
 
             window_layout.addWidget(fig)
             self.stack_layout.addWidget(window)
@@ -124,11 +123,6 @@ class AggregateWindow(QMainWindow):
 
         page_layout.addWidget(stack)
         page_layout.addWidget(buttons)
-
-        export = QPushButton("Export Data")
-        export.setStyleSheet("background-color: #007AFF")
-        export.clicked.connect(self.get_export_location)
-        button_layout.addWidget(export)
 
         widget = QWidget()
         widget.setLayout(page_layout)
@@ -233,17 +227,14 @@ class AggregateWindow(QMainWindow):
             )
 
         # Update displayed plots in GUI
-        self.main_displays["CVs"].draw_idle()
+        self.main_displays["CVs"].canvas.draw_idle()
         self.preview_widgets["CVs"].draw_idle()
 
-        self.main_displays["disp_V"].draw_idle()
+        self.main_displays["disp_V"].canvas.draw_idle()
         self.preview_widgets["disp_V"].draw_idle()
 
-        self.main_displays["disp_Q"].draw_idle()
+        self.main_displays["disp_Q"].canvas.draw_idle()
         self.preview_widgets["disp_Q"].draw_idle()
 
-        self.main_displays["disp_t"].draw_idle()
+        self.main_displays["disp_t"].canvas.draw_idle()
         self.preview_widgets["disp_t"].draw_idle()
-
-    def get_export_location(self):
-        pass

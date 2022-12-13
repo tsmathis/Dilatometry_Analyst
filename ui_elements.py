@@ -1,4 +1,4 @@
-#
+import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -14,27 +14,40 @@ from PyQt5.QtWidgets import (
     QGraphicsOpacityEffect,
 )
 
-
-class MplCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=12, height=6, dpi=150):
-        fig = Figure(figsize=(width, height), dpi=dpi, constrained_layout=True)
-        self.axes = fig.add_subplot()
-        super().__init__(fig)
+matplotlib.use("Qt5Agg")
 
 
 class FigureWindow(QWidget):
-    def __init__(self, fig):
+    def __init__(
+        self,
+        width=12,
+        height=6,
+        dpi=150,
+        x=None,
+        y=None,
+        xlabel=None,
+        ylabel=None,
+        curve_label=None,
+        subplots=1,
+    ):
         QWidget.__init__(self)
+
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
 
-        self.fig = fig
-        self.canvas = FigureCanvas(fig)
-        self.canvas.draw()
+        self.fig = Figure(figsize=(width, height), dpi=dpi, constrained_layout=True)
+        self.axes = self.fig.add_subplot(1, subplots, 1)
+        if x is not None and y is not None:
+            self.axes.plot(x, y, label=curve_label)
+        if xlabel and ylabel:
+            self.axes.set_xlabel(xlabel)
+            self.axes.set_ylabel(ylabel)
+        if curve_label:
+            self.axes.legend()
 
+        self.canvas = FigureCanvas(self.fig)
         self.canvas.mpl_connect("resize_event", self.resize)
-        self.canvas.draw()
         self.layout().addWidget(self.canvas)
 
         self.nav = NavigationToolbar(self.canvas, self, coordinates=False)
@@ -64,43 +77,7 @@ class FigureWindow(QWidget):
         return False
 
 
-class MultiMplCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=12, height=6, dpi=150):
-        fig = Figure(figsize=(width, height), dpi=dpi, constrained_layout=True)
-        self.axes1 = fig.add_subplot(1, 3, 1)
-        self.axes2 = fig.add_subplot(1, 3, 2)
-        self.axes3 = fig.add_subplot(1, 3, 3)
-        super().__init__(fig)
-
-
-# class HideableNavBar(NavigationToolbar):
-#     def __init__(self, fig, parent=None):
-#         super().__init__(fig)
-#         self.fig = fig
-#         self.hidden = True
-#         self.fig.mpl_connect("resize_event", self.resize)
-#         self.installEventFilter(self)
-
-#     def resize(self, event):
-#         # on resize reposition the navigation toolbar to (0,0) of the axes.
-#         x, y = self.fig.axes[0].transAxes.transform((0, 0))
-#         figw, figh = self.fig.get_size_inches()
-#         ynew = figh * self.fig.dpi - y - self.frameGeometry().height()
-#         self.move(x, ynew)
-
-#     def eventFilter(self, obj, event):
-#         if isinstance(obj, NavigationToolbar) and event.type() == QEvent.Enter:
-#             if self.hidden:
-#                 self.show()
-#                 self.hidden = False
-#             return True
-#         elif event.type() == QEvent.Leave:
-#             self.hide()
-#             self.hidden = True
-#         return False
-
-
-class ClickableWidget(MplCanvas):
+class ClickableWidget(FigureCanvas):
     clicked = pyqtSignal(int)
 
     def __init__(self, idx=None, parent=None):
@@ -115,7 +92,7 @@ class ClickableWidget(MplCanvas):
         self.installEventFilter(self)
 
     def eventFilter(self, obj, event):
-        if isinstance(obj, MplCanvas) and event.type() == QEvent.MouseButtonPress:
+        if isinstance(obj, FigureCanvas) and event.type() == QEvent.MouseButtonPress:
             self.clicked.emit(self.index)
         return QWidget.eventFilter(self, obj, event)
 
