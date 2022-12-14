@@ -1,13 +1,17 @@
 from dilatometry import Dilatometry
-from ui_elements import FileLabelCombo
 from main_window import MainWindow
 
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont, QDesktopServices
 from PyQt5.QtWidgets import (
+    QAbstractItemView,
     QAction,
     QLineEdit,
+    QComboBox,
     QFileDialog,
+    QTreeWidget,
+    QHeaderView,
+    QTreeWidgetItem,
     QMainWindow,
     QPushButton,
     QLabel,
@@ -37,8 +41,10 @@ class FileDialog(QMainWindow):
         layout = QVBoxLayout()
 
         top = QWidget()
+        top.setFixedHeight(50)
         mid = QWidget()
         bot = QWidget()
+        bot.setFixedHeight(50)
 
         layout.addWidget(top)
         layout.addWidget(mid)
@@ -48,26 +54,48 @@ class FileDialog(QMainWindow):
         self.mid_layout = QVBoxLayout()
         bottom_layout = QHBoxLayout()
 
-        import_button = QPushButton("File Import")
+        self.file_tree = QTreeWidget()
+        self.file_tree.setEditTriggers(QAbstractItemView.DoubleClicked)
+        self.file_tree.setColumnCount(3)
+        self.file_tree.setAlternatingRowColors(True)
+        self.file_tree.setHeaderLabels(["Files", "File Label", "File Type"])
+        self.file_tree.setColumnWidth(1, 80)
+        self.file_tree.setColumnWidth(2, 120)
+        header = self.file_tree.header()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        header.setStretchLastSection(False)
+        self.mid_layout.addWidget(self.file_tree)
+
+        import_button = QPushButton("Add Files")
+        import_button.setFixedWidth(100)
         import_button.clicked.connect(self.get_files)
 
-        baseline_label = QLabel("Baseline value:")
-        self.baseline_input = QLineEdit("Enter a value in microns")
+        baseline_label = QLabel("Electrode Reference Thickness (<span>&mu;</span>m):")
+        baseline_label.setFixedWidth(180)
+        self.baseline_input = QLineEdit()
+        self.baseline_input.setPlaceholderText("Electrode thickness")
+        self.baseline_input.setFixedWidth(110)
 
         top_layout.addWidget(import_button)
+        top_layout.addWidget(QWidget())
         top_layout.addWidget(baseline_label)
         top_layout.addWidget(self.baseline_input)
 
         mass = QLabel("Enter electrode mass:")
         volume = QLabel("Enter electrode volume:")
         area = QLabel("Enter electrode area:")
-        process_btn = QPushButton("Process data")
-        process_btn.clicked.connect(self.process_data)
+        self.process_btn = QPushButton("Process data")
+        self.process_btn.setFixedWidth(120)
+        self.process_btn.setStyleSheet("background-color: #007AFF")
+        self.process_btn.setEnabled(False)
+        self.process_btn.clicked.connect(self.process_data)
 
         bottom_layout.addWidget(mass)
         bottom_layout.addWidget(volume)
         bottom_layout.addWidget(area)
-        bottom_layout.addWidget(process_btn)
+        bottom_layout.addWidget(self.process_btn)
 
         top.setLayout(top_layout)
         mid.setLayout(self.mid_layout)
@@ -85,16 +113,25 @@ class FileDialog(QMainWindow):
     def get_files(self):
         files, _ = QFileDialog.getOpenFileNames(self)
         for idx, path in enumerate(files):
-            disp = FileLabelCombo(file_text=path)
-            self.file_params.append(disp)
-            self.mid_layout.addWidget(disp)
+            item = QTreeWidgetItem(self.file_tree, [path, "Label"])
+            item.setFlags(item.flags() | Qt.ItemIsEditable)
+
+            file_type = QComboBox()
+            file_type.addItems(
+                ["CV - SuperCap", "CCCD - SuperCap", "CV - Battery", "CCCD - Battery"]
+            )
+            self.file_tree.setItemWidget(item, 2, file_type)
+
+            self.file_params.append(item)
+
+        self.process_btn.setEnabled(True)
 
     def process_data(self):
         ref_thickness = float(self.baseline_input.text())
 
         for idx in range(len(self.file_params)):
-            file_key = self.file_params[idx].file_label.text()
-            file_str = self.file_params[idx].file_text
+            file_key = self.file_params[idx].text(1)
+            file_str = self.file_params[idx].text(0)
 
             data = Dilatometry(ref_thickness=ref_thickness)
             data.load_data(file_str=file_str)
@@ -104,8 +141,6 @@ class FileDialog(QMainWindow):
             data.calc_derivatives()
 
             self.processed_data[file_key] = data
-
-            # print(self.file_params[key].file_type.currentText())
 
         self.main_window = MainWindow(processed_data_dict=self.processed_data)
         self.main_window.initialize_window()
