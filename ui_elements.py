@@ -1,20 +1,36 @@
 import matplotlib
+import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
-from PyQt5.QtCore import pyqtSignal, QEvent
+from PyQt5.QtCore import pyqtSignal, QEvent, QUrl
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import (
+    QAction,
+    QMainWindow,
     QWidget,
-    QLabel,
-    QComboBox,
-    QLineEdit,
-    QHBoxLayout,
     QVBoxLayout,
     QGraphicsOpacityEffect,
 )
 
 matplotlib.use("Qt5Agg")
+
+
+class BaseWindow(QMainWindow):
+    def __init__(self, parent=None):
+        super(QMainWindow, self).__init__(parent)
+
+        menu = self.menuBar()
+        documentation_action = QAction("Documentation", self)
+        documentation_action.triggered.connect(self.open_documentation)
+        help_menu = menu.addMenu("Help")
+        help_menu.addAction(documentation_action)
+
+    def open_documentation(self):
+        QDesktopServices.openUrl(
+            QUrl("https://github.com/tsmathis/dilatometry_analyst/blob/main/README.md")
+        )
 
 
 class FigureWindow(QWidget):

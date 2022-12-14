@@ -1,14 +1,12 @@
 import colorcet as cc
 import matplotlib.pyplot as plt
 
-from ui_elements import FigureWindow, ClickableWidget
+from ui_elements import BaseWindow, FigureWindow, ClickableWidget
 from plotting_utils import get_color_cycle
 
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QFont, QDesktopServices
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QAction,
-    QMainWindow,
     QPushButton,
     QComboBox,
     QLabel,
@@ -32,17 +30,11 @@ colorcet_cmaps = {
 }
 
 
-class AggregateWindow(QMainWindow):
-    def __init__(self, aggregate_data):
-        super().__init__()
+class AggregateWindow(BaseWindow):
+    def __init__(self, aggregate_data, parent=None):
+        super(AggregateWindow, self).__init__(parent)
 
         self.data = aggregate_data
-
-        menu = self.menuBar()
-        documentation_action = QAction("Documentation", self)
-        documentation_action.triggered.connect(self.open_documentation)
-        help_menu = menu.addMenu("Help")
-        help_menu.addAction(documentation_action)
 
         self.setWindowTitle("Dilatometry Analyst: Aggregate Data")
         self.resize(960, 677)
@@ -127,11 +119,6 @@ class AggregateWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(page_layout)
         self.setCentralWidget(widget)
-
-    def open_documentation(self):
-        QDesktopServices.openUrl(
-            QUrl("https://github.com/tsmathis/dilatometry_analyst/blob/main/README.md")
-        )
 
     def change_active_view(self, clicked):
         self.stack_layout.setCurrentIndex(clicked)

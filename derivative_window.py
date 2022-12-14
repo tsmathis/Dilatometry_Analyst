@@ -1,26 +1,16 @@
-from ui_elements import FigureWindow
+from ui_elements import BaseWindow, FigureWindow
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import (
-    QAction,
-    QMainWindow,
     QGridLayout,
     QWidget,
 )
 
 
-class DerivativeWindow(QMainWindow):
-    def __init__(self, derivative_data):
-        super().__init__()
+class DerivativeWindow(BaseWindow):
+    def __init__(self, derivative_data, parent=None):
+        super(DerivativeWindow, self).__init__(parent)
 
         self.data = derivative_data
-
-        menu = self.menuBar()
-        documentation_action = QAction("Documentation", self)
-        documentation_action.triggered.connect(self.open_documentation)
-        help_menu = menu.addMenu("Help")
-        help_menu.addAction(documentation_action)
 
         self.setWindowTitle("Dilatometry Analys: Displacement Derivatives")
         self.resize(1400, 877)
@@ -50,8 +40,3 @@ class DerivativeWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(page_layout)
         self.setCentralWidget(widget)
-
-    def open_documentation(self):
-        QDesktopServices.openUrl(
-            QUrl("https://github.com/tsmathis/dilatometry_analyst/blob/main/README.md")
-        )

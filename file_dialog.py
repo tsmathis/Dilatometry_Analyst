@@ -1,11 +1,12 @@
 from dilatometry import Dilatometry
+from ui_elements import BaseWindow
 from main_window import MainWindow
+from spinner_widget import QtWaitingSpinner
 
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QFont, QDesktopServices
+from PyQt5.QtCore import Qt, QThreadPool, QRunnable, QObject, pyqtSignal
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QAbstractItemView,
-    QAction,
     QLineEdit,
     QComboBox,
     QFileDialog,
@@ -17,12 +18,51 @@ from PyQt5.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QHBoxLayout,
+    QStackedLayout,
     QWidget,
     QMessageBox,
 )
 
 
-class FileDialog(QMainWindow):
+class WorkerSignals(QObject):
+    finished = pyqtSignal()
+    error = pyqtSignal(str, str)
+    result = pyqtSignal(object)
+
+
+class Worker(QRunnable):
+    def __init__(self, dialog, file_params, ref_thickness):
+        super(Worker, self).__init__()
+        self.signals = WorkerSignals()
+        self.w = dialog
+        self.file_params = file_params
+        self.ref_thickness = ref_thickness
+
+    def run(self):
+        try:
+            processed_data = {}
+            for idx in range(len(self.file_params)):
+                file_key = self.file_params[idx].text(1)
+                file_str = self.file_params[idx].text(0)
+
+                data = Dilatometry(ref_thickness=self.ref_thickness)
+                data.load_data(file_str=file_str)
+                data.normalize_data()
+                data.subtract_baseline()
+                data.average_data()
+                data.calc_derivatives()
+
+                processed_data[file_key] = data
+
+        except:
+            pass
+
+        else:
+            self.signals.result.emit(processed_data)
+            self.signals.finished.emit()
+
+
+class FileDialog(BaseWindow):
     def __init__(self, parent=None):
         super(FileDialog, self).__init__(parent)
 
@@ -30,13 +70,6 @@ class FileDialog(QMainWindow):
         self.setMinimumSize(600, 400)
 
         self.file_params = []
-        self.processed_data = {}
-
-        menu = self.menuBar()
-        documentation_action = QAction("Documentation", self)
-        documentation_action.triggered.connect(self.open_documentation)
-        help_menu = menu.addMenu("Help")
-        help_menu.addAction(documentation_action)
 
         layout = QVBoxLayout()
 
@@ -103,12 +136,18 @@ class FileDialog(QMainWindow):
 
         container = QWidget()
         container.setLayout(layout)
-        self.setCentralWidget(container)
 
-    def open_documentation(self):
-        QDesktopServices.openUrl(
-            QUrl("https://github.com/tsmathis/dilatometry_analyst/blob/main/README.md")
-        )
+        stack = QWidget()
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.setStackingMode(QStackedLayout.StackAll)
+        stack.setLayout(self.stack_layout)
+
+        self.stack_layout.addWidget(container)
+        self.spinner = QtWaitingSpinner(self, True, True, Qt.ApplicationModal)
+        self.stack_layout.addWidget(self.spinner)
+
+        self.setCentralWidget(stack)
+        self.threadpool = QThreadPool()
 
     def get_files(self):
         files, _ = QFileDialog.getOpenFileNames(self)
@@ -127,21 +166,30 @@ class FileDialog(QMainWindow):
         self.process_btn.setEnabled(True)
 
     def process_data(self):
-        ref_thickness = float(self.baseline_input.text())
+        self.stack_layout.setCurrentIndex(1)
+        self.spinner.start()
+        worker = Worker(
+            dialog=self,
+            file_params=self.file_params,
+            ref_thickness=float(self.baseline_input.text()),
+        )
+        worker.signals.result.connect(self.set_data)
+        worker.signals.finished.connect(self.finish_processing)
+        worker.signals.error.connect(self.process_error)
+        self.threadpool.start(worker)
 
-        for idx in range(len(self.file_params)):
-            file_key = self.file_params[idx].text(1)
-            file_str = self.file_params[idx].text(0)
-
-            data = Dilatometry(ref_thickness=ref_thickness)
-            data.load_data(file_str=file_str)
-            data.normalize_data()
-            data.subtract_baseline()
-            data.average_data()
-            data.calc_derivatives()
-
-            self.processed_data[file_key] = data
-
-        self.main_window = MainWindow(processed_data_dict=self.processed_data)
+    def set_data(self, processed_data):
+        self.main_window = MainWindow(processed_data_dict=processed_data)
         self.main_window.initialize_window()
         self.main_window.show()
+
+    def finish_processing(self):
+        self.close()
+        self.spinner.stop()
+
+    def process_error(self, error, title):
+        self.spinner.stop()
+        # exception_handler(
+        #     error=error,
+        #     window_title=title,
+        # )

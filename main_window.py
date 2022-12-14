@@ -1,14 +1,12 @@
-from ui_elements import FigureWindow
+from ui_elements import BaseWindow, FigureWindow
 from aggregate_window import AggregateWindow
 from derivative_window import DerivativeWindow
 from file_export import export_data
 
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QFont, QDesktopServices
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QAction,
     QFileDialog,
-    QMainWindow,
     QPushButton,
     QLabel,
     QTabWidget,
@@ -19,18 +17,12 @@ from PyQt5.QtWidgets import (
 )
 
 
-class MainWindow(QMainWindow):
-    def __init__(self, processed_data_dict):
-        super().__init__()
+class MainWindow(BaseWindow):
+    def __init__(self, processed_data_dict, parent=None):
+        super(MainWindow, self).__init__(parent)
 
         self.processed_data = processed_data_dict
         self.tab_stacks = {}
-
-        menu = self.menuBar()
-        documentation_action = QAction("Documentation", self)
-        documentation_action.triggered.connect(self.open_documentation)
-        help_menu = menu.addMenu("Help")
-        help_menu.addAction(documentation_action)
 
         self.setWindowTitle("Dilatometry Analyst")
 
@@ -106,11 +98,6 @@ class MainWindow(QMainWindow):
         file_label.move(10, 15)
         file_label.setFont(QFont("Arial", 10))
         file_label.setAlignment(Qt.AlignCenter)
-
-    def open_documentation(self):
-        QDesktopServices.openUrl(
-            QUrl("https://github.com/tsmathis/dilatometry_analyst/blob/main/README.md")
-        )
 
     def initialize_window(self):
         idx = 0
