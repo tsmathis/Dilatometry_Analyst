@@ -2,8 +2,9 @@ from ui_elements import BaseWindow, FigureWindow
 from aggregate_window import AggregateWindow
 from derivative_window import DerivativeWindow
 from file_export import export_data
+from spinner_widget import QtWaitingSpinner
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThreadPool, QRunnable, QObject, pyqtSignal
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QFileDialog,
@@ -17,14 +18,44 @@ from PyQt5.QtWidgets import (
 )
 
 
+class WorkerSignals(QObject):
+    finished = pyqtSignal()
+    error = pyqtSignal(str, str)
+
+
+class Worker(QRunnable):
+    def __init__(self, dialog, file_name, export_data):
+        super(Worker, self).__init__()
+        self.signals = WorkerSignals()
+        self.w = dialog
+        self.file_name = file_name
+        self.data_to_export = export_data
+
+    def run(self):
+        try:
+            export_data(
+                norm_file=f"{self.file_name}_Normalized_data",
+                baseline_file=f"{self.file_name}_Data_minus_baseline",
+                average_file=f"{self.file_name}_Averaged_data",
+                processed_data=self.data_to_export,
+            )
+
+        except:
+            pass
+
+        else:
+            self.signals.finished.emit()
+
+
 class MainWindow(BaseWindow):
     def __init__(self, processed_data_dict, parent=None):
         super(MainWindow, self).__init__(parent)
 
+        self.setWindowTitle("Dilatometry Analyst")
+        self.setMinimumSize(1200, 677)
+
         self.processed_data = processed_data_dict
         self.tab_stacks = {}
-
-        self.setWindowTitle("Dilatometry Analyst")
 
         self.page_layout = QVBoxLayout()
         bottom_buttons = QHBoxLayout()
@@ -90,7 +121,18 @@ class MainWindow(BaseWindow):
 
         container = QWidget()
         container.setLayout(self.page_layout)
-        self.setCentralWidget(container)
+
+        stack = QWidget()
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.setStackingMode(QStackedLayout.StackAll)
+        stack.setLayout(self.stack_layout)
+
+        self.stack_layout.addWidget(container)
+        self.spinner = QtWaitingSpinner(self, True, True, Qt.ApplicationModal)
+        self.stack_layout.addWidget(self.spinner)
+
+        self.setCentralWidget(stack)
+        self.threadpool = QThreadPool()
 
         file_label = QLabel(parent=container, text="Data:")
         file_label.setFixedHeight(41)
@@ -223,9 +265,23 @@ class MainWindow(BaseWindow):
         if not file_name:
             return
         file_name = file_name.strip(".xlsx")
-        export_data(
-            norm_file=f"{file_name}_Normalized_data",
-            baseline_file=f"{file_name}_Data_minus_baseline",
-            average_file=f"{file_name}_Averaged_data",
-            processed_data=self.processed_data,
+
+        self.stack_layout.setCurrentIndex(1)
+        self.spinner.start()
+        worker = Worker(
+            dialog=self, file_name=file_name, export_data=self.processed_data
         )
+        # worker.signals.result.connect(self.set_data)
+        worker.signals.finished.connect(self.finish_processing)
+        worker.signals.error.connect(self.process_error)
+        self.threadpool.start(worker)
+
+    def finish_processing(self):
+        self.spinner.stop()
+
+    def process_error(self, error, title):
+        self.spinner.stop()
+        # exception_handler(
+        #     error=error,
+        #     window_title=title,
+        # )
