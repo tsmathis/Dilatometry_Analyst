@@ -178,11 +178,29 @@ class MainWindow(BaseWindow):
                 subplots=3,
             )
 
+            avg_widget.axes.errorbar(
+                self.processed_data[key].averaged_data["Average Potential (V)"],
+                self.processed_data[key].averaged_data["Average Current (mA)"],
+                yerr=self.processed_data[key].averaged_data["Current Stand Dev (mA)"],
+                color="tab:blue",
+                alpha=0.2,
+            )
+
             axes2 = avg_widget.fig.add_subplot(1, 3, 2)
 
             axes2.plot(
                 self.processed_data[key].averaged_data["Average Time (s)"],
                 self.processed_data[key].averaged_data["Average Displacement (%)"],
+            )
+            axes2.errorbar(
+                self.processed_data[key].averaged_data["Average Time (s)"],
+                self.processed_data[key].averaged_data["Average Displacement (%)"],
+                yerr=self.processed_data[key].averaged_data[
+                    "Displacement Stand Dev (%)"
+                ],
+                errorevery=2,
+                color="tab:blue",
+                alpha=0.05,
             )
             axes2.set_xlabel("Time (s)")
             axes2.set_ylabel("Averaged Relative Displacement (%)")
@@ -191,6 +209,16 @@ class MainWindow(BaseWindow):
             axes3.plot(
                 self.processed_data[key].averaged_data["Average Potential (V)"],
                 self.processed_data[key].averaged_data["Average Displacement (%)"],
+            )
+            axes3.errorbar(
+                self.processed_data[key].averaged_data["Average Potential (V)"],
+                self.processed_data[key].averaged_data["Average Displacement (%)"],
+                yerr=self.processed_data[key].averaged_data[
+                    "Displacement Stand Dev (%)"
+                ],
+                errorevery=2,
+                color="tab:blue",
+                alpha=0.05,
             )
 
             axes3.set_xlabel("Potential (V)")

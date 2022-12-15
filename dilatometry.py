@@ -47,7 +47,7 @@ class Dilatometry:
             ] = (cycle_norm / abs(self.ref_thickness) * 100)
 
     def subtract_baseline(self):
-        # Subtracting baseline (found with cubic spline fitting of local maxima) from displacement data, excluding first cycle
+        # Subtracting baseline (calculated with cubic spline fitting of local maxima) from displacement data, excluding first cycle
         self.data_minus_baseline = self.data[self.data["cycle number"] > 1].copy()
 
         maxima = []
@@ -76,7 +76,7 @@ class Dilatometry:
         y = self.data_minus_baseline["Normalized displacement"]
         cubic = fit(x)
 
-        # Have to renormalize to first value due to fit subtraction offsetting the data
+        # Renormalize to first value due to fit subtraction offsetting the data
         offset_corrected_disp = (y - cubic) - (y - cubic).iloc[0]
 
         self.data_minus_baseline["Displacement minus baseline"] = offset_corrected_disp

@@ -107,11 +107,11 @@ class AggregateWindow(BaseWindow):
 
             button = ClickableWidget(idx=i)
             button.clicked.connect(self.change_active_view)
+            self.preview_widgets[key] = button
+            button_layout.addWidget(button)
             button_layout.addWidget(button_labels[i])
             button_labels[i].setFont(QFont("Arial", 12))
             button_labels[i].setAlignment(Qt.AlignCenter)
-            button_layout.addWidget(button)
-            self.preview_widgets[key] = button
 
         page_layout.addWidget(stack)
         page_layout.addWidget(buttons)
@@ -152,6 +152,13 @@ class AggregateWindow(BaseWindow):
                 color=colors[i]["color"],
                 label=key,
             )
+            self.main_displays["CVs"].axes.errorbar(
+                self.data[key].averaged_data["Average Potential (V)"],
+                self.data[key].averaged_data["Average Current (mA)"],
+                yerr=self.data[key].averaged_data["Current Stand Dev (mA)"],
+                alpha=0.2,
+                color=colors[i]["color"],
+            )
             self.main_displays["CVs"].axes.legend()
             self.main_displays["CVs"].axes.set_xlabel("Potential (V)")
             self.main_displays["CVs"].axes.set_ylabel("Average Current (mA)")
@@ -168,6 +175,14 @@ class AggregateWindow(BaseWindow):
                 self.data[key].averaged_data["Average Displacement (%)"],
                 color=colors[i]["color"],
                 label=key,
+            )
+            self.main_displays["disp_V"].axes.errorbar(
+                self.data[key].averaged_data["Average Potential (V)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+                yerr=self.data[key].averaged_data["Displacement Stand Dev (%)"],
+                errorevery=2,
+                color=colors[i]["color"],
+                alpha=0.05,
             )
             self.main_displays["disp_V"].axes.legend()
             self.main_displays["disp_V"].axes.set_xlabel("Potential (V)")
@@ -186,6 +201,14 @@ class AggregateWindow(BaseWindow):
                 color=colors[i]["color"],
                 label=key,
             )
+            self.main_displays["disp_Q"].axes.errorbar(
+                self.data[key].averaged_data["Average Charge (C)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+                yerr=self.data[key].averaged_data["Displacement Stand Dev (%)"],
+                errorevery=2,
+                color=colors[i]["color"],
+                alpha=0.05,
+            )
             self.main_displays["disp_Q"].axes.legend()
             self.main_displays["disp_Q"].axes.set_xlabel("Charge (C)")
             self.main_displays["disp_Q"].axes.set_ylabel("Average Displacement (%)")
@@ -202,6 +225,14 @@ class AggregateWindow(BaseWindow):
                 self.data[key].averaged_data["Average Displacement (%)"],
                 color=colors[i]["color"],
                 label=key,
+            )
+            self.main_displays["disp_t"].axes.errorbar(
+                self.data[key].averaged_data["Average Time (s)"],
+                self.data[key].averaged_data["Average Displacement (%)"],
+                yerr=self.data[key].averaged_data["Displacement Stand Dev (%)"],
+                errorevery=2,
+                color=colors[i]["color"],
+                alpha=0.05,
             )
             self.main_displays["disp_t"].axes.legend()
             self.main_displays["disp_t"].axes.set_xlabel("Time (s)")
