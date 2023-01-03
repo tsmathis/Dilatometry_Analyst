@@ -4,11 +4,12 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
-from PyQt5.QtCore import pyqtSignal, QEvent, QUrl
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import (
     QAction,
     QMainWindow,
+    QTreeWidget,
     QWidget,
     QVBoxLayout,
     QGraphicsOpacityEffect,
@@ -31,6 +32,19 @@ class BaseWindow(QMainWindow):
         QDesktopServices.openUrl(
             QUrl("https://github.com/tsmathis/dilatometry_analyst/blob/main/README.md")
         )
+
+
+class ModifableTable(QTreeWidget):
+    def __init__(self, parent=None):
+        super(QTreeWidget, self).__init__(parent)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete:
+            item = self.currentItem()
+            item_to_delete = self.takeTopLevelItem(self.indexOfTopLevelItem(item))
+            item_to_delete.takeChildren()
+        else:
+            super().keyPressEvent(event)
 
 
 class FigureWindow(QWidget):
@@ -63,7 +77,7 @@ class FigureWindow(QWidget):
             self.axes.legend()
 
         self.canvas = FigureCanvas(self.fig)
-        self.canvas.mpl_connect("resize_event", self.resize)
+        # self.canvas.mpl_connect("resize_event", self.resize)
         self.layout().addWidget(self.canvas)
 
         self.nav = NavigationToolbar(self.canvas, self, coordinates=False)

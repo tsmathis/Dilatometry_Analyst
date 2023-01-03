@@ -1,5 +1,5 @@
 from dilatometry import Dilatometry
-from ui_elements import BaseWindow
+from ui_elements import BaseWindow, ModifableTable
 from main_window import MainWindow
 from spinner_widget import QtWaitingSpinner
 
@@ -68,6 +68,8 @@ class FileDialog(BaseWindow):
         self.setWindowTitle("Dilatometry Analyst: Data Import")
         self.setMinimumSize(600, 400)
 
+        text_font = QFont("Arial", 9)
+
         self.file_params = []
 
         layout = QVBoxLayout()
@@ -86,29 +88,34 @@ class FileDialog(BaseWindow):
         self.mid_layout = QVBoxLayout()
         bottom_layout = QHBoxLayout()
 
-        self.file_tree = QTreeWidget()
+        self.file_tree = ModifableTable()
         self.file_tree.setEditTriggers(QAbstractItemView.DoubleClicked)
         self.file_tree.setColumnCount(3)
         self.file_tree.setAlternatingRowColors(True)
         self.file_tree.setHeaderLabels(["Files", "File Label", "File Type"])
         self.file_tree.setColumnWidth(1, 80)
         self.file_tree.setColumnWidth(2, 120)
+
         header = self.file_tree.header()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.Fixed)
         header.setSectionResizeMode(2, QHeaderView.Fixed)
         header.setStretchLastSection(False)
+
         self.mid_layout.addWidget(self.file_tree)
 
         import_button = QPushButton("Add Files")
+        import_button.setFont(text_font)
         import_button.setFixedWidth(100)
         import_button.clicked.connect(self.get_files)
 
         baseline_label = QLabel("Electrode Reference Thickness (<span>&mu;</span>m):")
-        baseline_label.setFixedWidth(180)
+        baseline_label.setFont(text_font)
+        baseline_label.setFixedWidth(200)
         self.baseline_input = QLineEdit()
         self.baseline_input.setPlaceholderText("Electrode thickness")
-        self.baseline_input.setFixedWidth(110)
+        self.baseline_input.setFont(text_font)
+        self.baseline_input.setFixedWidth(120)
 
         top_layout.addWidget(import_button)
         top_layout.addWidget(QWidget())
@@ -118,8 +125,14 @@ class FileDialog(BaseWindow):
         mass = QLabel("Enter electrode mass:")
         volume = QLabel("Enter electrode volume:")
         area = QLabel("Enter electrode area:")
+
+        mass.setFont(text_font)
+        volume.setFont(text_font)
+        area.setFont(text_font)
+
         self.process_btn = QPushButton("Process data")
         self.process_btn.setFixedWidth(120)
+        self.process_btn.setFont(text_font)
         self.process_btn.setStyleSheet("background-color: #007AFF")
         self.process_btn.setEnabled(False)
         self.process_btn.clicked.connect(self.process_data)
@@ -160,13 +173,18 @@ class FileDialog(BaseWindow):
             )
             self.file_tree.setItemWidget(item, 2, file_type)
 
-            self.file_params.append(item)
-
         self.process_btn.setEnabled(True)
 
     def process_data(self):
         self.stack_layout.setCurrentIndex(1)
         self.spinner.start()
+
+        root = self.file_tree.invisibleRootItem()
+        child_count = root.childCount()
+        for i in range(child_count):
+            item = root.child(i)
+            self.file_params.append(item)
+
         worker = Worker(
             dialog=self,
             file_params=self.file_params,
