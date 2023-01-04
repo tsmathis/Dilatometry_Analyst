@@ -1,7 +1,6 @@
 __pycache__
 build
 dist
-main.spec
 dilatometry_analyst_installer.exe
 icon_files
 venv

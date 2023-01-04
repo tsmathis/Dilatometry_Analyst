@@ -227,46 +227,6 @@ class MainWindow(BaseWindow):
             stack.addWidget(avg_widget)
             self.tabs.addTab(preview, key)
 
-            # avg_preview.axes1.fill_between(
-            #     self.processed_data[key].averaged_data["Average Potential (V)"],
-            #     (
-            #         self.processed_data[key].averaged_data["Average Current (mA)"]
-            #         + self.processed_data[key].averaged_data["Current Stand Dev (mA)"]
-            #     ),
-            #     (
-            #         self.processed_data[key].averaged_data["Average Current (mA)"]
-            #         - self.processed_data[key].averaged_data["Current Stand Dev (mA)"]
-            #     ),
-            #     alpha=0.4,
-            # )
-
-            # avg_preview.axes2.fill_between(
-            #     self.processed_data[key].averaged_data["Average Time (s)"],
-            #     (
-            #         self.processed_data[key].averaged_data["Average Displacement (%)"]
-            #         + self.processed_data[key].averaged_data[
-            #             "Displacement Stand Dev (%)"
-            #         ]
-            #     ),
-            #     (
-            #         self.processed_data[key].averaged_data["Average Displacement (%)"]
-            #         - self.processed_data[key].averaged_data[
-            #             "Displacement Stand Dev (%)"
-            #         ]
-            #     ),
-            #     alpha=0.4,
-            # )
-
-            # x = self.processed_data[key].averaged_data["Average Potential (V)"]
-            # y = self.processed_data[key].averaged_data["Average Displacement (%)"]
-            # err = self.processed_data[key].averaged_data["Displacement Stand Dev (%)"]
-            # self.draw_error_band(
-            #     ax=avg_preview.axes3, x=x, y=y, err=err, edgecolor="none", alpha=0.4
-            # )
-
-            # # avg_layout.addWidget(avg_toolbar)
-            # avg_layout.addWidget(avg_preview)
-
     def show_norm_data(self):
         idx = self.tabs.currentIndex()
         self.tab_stacks[idx].setCurrentIndex(0)
@@ -299,7 +259,7 @@ class MainWindow(BaseWindow):
         worker = Worker(
             dialog=self, file_name=file_name, export_data=self.processed_data
         )
-        # worker.signals.result.connect(self.set_data)
+
         worker.signals.finished.connect(self.finish_processing)
         worker.signals.error.connect(self.process_error)
         self.threadpool.start(worker)

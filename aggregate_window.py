@@ -72,6 +72,7 @@ class AggregateWindow(BaseWindow):
         )
 
         self.color_dropdown.setCurrentIndex(10)
+        self.color_dropdown.setFont(QFont("Arial", 9))
         button_layout.addWidget(self.color_dropdown)
 
         self.color_dropdown.currentIndexChanged.connect(self.update_plots)
