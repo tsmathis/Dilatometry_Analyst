@@ -170,6 +170,10 @@ class Dilatometry:
             }
         )
 
+        self.averaged_data["ox/red"] = [
+            0 if x < 0 else 1 for x in self.averaged_data["Average Current (mA)"]
+        ]
+
     def calc_derivatives(self):
         dt = np.gradient(self.averaged_data["Average Time (s)"])
         dD = np.gradient(self.averaged_data["Average Displacement (um)"])
