@@ -24,6 +24,7 @@ class DerivativeWindow(BaseWindow):
                 xlabel="Potential (V)",
                 ylabel="dD/dt ($\mu$m/s)",
                 curve_label=key,
+                outlier_mode=True,
             )
 
             dDdt_vs_i = FigureWindow(
@@ -32,6 +33,7 @@ class DerivativeWindow(BaseWindow):
                 xlabel="Current (mA)",
                 ylabel="-dD/dt ($\mu$m/s)",
                 curve_label=key,
+                outlier_mode=True,
             )
 
             page_layout.addWidget(dDdt_vs_V, 0, i)

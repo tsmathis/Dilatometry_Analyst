@@ -1,6 +1,7 @@
 import matplotlib
 
 from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
@@ -68,6 +69,7 @@ class FigureWindow(QMainWindow):
         curve_label=None,
         subplots=1,
         parent=None,
+        outlier_mode=False,
     ):
         super(QMainWindow, self).__init__(parent)
 
@@ -80,7 +82,7 @@ class FigureWindow(QMainWindow):
         self.axes = self.fig.add_subplot(1, subplots, 1)
 
         if x is not None and y is not None:
-            self.axes.plot(x, y, label=curve_label)
+            self.axes.plot(x, y, label=curve_label, picker=True, pickradius=5)
 
         if xlabel and ylabel:
             self.axes.set_xlabel(xlabel)
@@ -103,6 +105,33 @@ class FigureWindow(QMainWindow):
         self.opac.setOpacity(0.3)
         self.nav.setGraphicsEffect(self.opac)
 
+        if outlier_mode:
+            self.fig.canvas.setFocusPolicy(Qt.ClickFocus)
+            self.fig.canvas.setFocus()
+            self.x_annot, self.y_annot = 0.0, 0.0
+            self.xoffset, self.yoffset = -20, 20
+            self.text_template = "x: %0.2f\ny: %0.2f"
+
+            self.outlier = None
+            self.line = self.axes.lines[0]
+            self.x_data = list(self.line.get_xdata())
+            self.y_data = list(self.line.get_ydata())
+
+            self.annotation = self.axes.annotate(
+                self.text_template,
+                xy=(self.x_annot, self.y_annot),
+                xytext=(self.xoffset, self.yoffset),
+                textcoords="offset points",
+                ha="right",
+                va="bottom",
+                bbox=dict(boxstyle="round,pad=0.5", fc="yellow", alpha=0.8),
+                arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0"),
+            )
+            self.annotation.set_visible(False)
+
+            self.fig.canvas.mpl_connect("pick_event", self.point_pick)
+            self.fig.canvas.mpl_connect("key_press_event", self.delete_outlier)
+
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Enter:
             self.opac.setOpacity(1.0)
@@ -112,6 +141,30 @@ class FigureWindow(QMainWindow):
             self.opac.setOpacity(0.3)
             self.nav.setGraphicsEffect(self.opac)
         return False
+
+    def point_pick(self, event):
+        if isinstance(event.artist, Line2D):
+            self.artist = event.artist
+            self.outlier = event.ind[0]
+            self.x_annot, self.y_annot = (
+                self.artist.get_xdata()[event.ind[0]],
+                self.artist.get_ydata()[event.ind[0]],
+            )
+            self.annotation.xy = (self.x_annot, self.y_annot)
+            self.annotation.set_text(self.text_template % (self.x_annot, self.y_annot))
+            self.annotation.set_visible(True)
+            event.canvas.draw_idle()
+
+    def delete_outlier(self, event):
+        if event.key == "delete" and self.outlier is not None:
+            self.x_data.pop(self.outlier)
+            self.y_data.pop(self.outlier)
+            self.line.set_data(self.x_data, self.y_data)
+            self.outlier = None
+            self.annotation.set_visible(False)
+            self.axes.relim()
+            self.axes.autoscale_view()
+            event.canvas.draw_idle()
 
 
 class ClickableWidget(FigureCanvas):
