@@ -1,18 +1,22 @@
 import matplotlib
 
+from scipy.signal import savgol_filter
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QUrl
-from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtGui import QDesktopServices, QFont
 from PyQt5.QtWidgets import (
     QAction,
+    QLabel,
     QMainWindow,
+    QSlider,
     QTreeWidget,
     QWidget,
     QVBoxLayout,
+    QHBoxLayout,
     QGraphicsOpacityEffect,
 )
 
@@ -68,8 +72,8 @@ class FigureWindow(QMainWindow):
         ylabel=None,
         curve_label=None,
         subplots=1,
+        smoothing=False,
         parent=None,
-        outlier_mode=False,
     ):
         super(QMainWindow, self).__init__(parent)
 
@@ -91,6 +95,22 @@ class FigureWindow(QMainWindow):
         if curve_label:
             self.axes.legend()
 
+        if smoothing:
+            slider_container = QWidget()
+            slider_container_layout = QHBoxLayout()
+            slider_container.setLayout(slider_container_layout)
+
+            slider_label = QLabel("Curve Smoothing")
+            slider_label.setFont(QFont("Arial", 10))
+            slider_container_layout.addWidget(slider_label)
+
+            self.smoothing_slider = QSlider(orientation=Qt.Orientation.Horizontal)
+            self.smoothing_slider.setRange(4, 50)
+            self.smoothing_slider.valueChanged.connect(self.smooth_curve)
+            slider_container_layout.addWidget(self.smoothing_slider)
+
+            layout.addWidget(slider_container)
+
         self.canvas = FigureCanvas(self.fig)
         layout.addWidget(self.canvas)
 
@@ -105,7 +125,7 @@ class FigureWindow(QMainWindow):
         self.opac.setOpacity(0.3)
         self.nav.setGraphicsEffect(self.opac)
 
-        if outlier_mode:
+        if smoothing:
             self.fig.canvas.setFocusPolicy(Qt.ClickFocus)
             self.fig.canvas.setFocus()
             self.x_annot, self.y_annot = 0.0, 0.0
@@ -162,9 +182,16 @@ class FigureWindow(QMainWindow):
             self.line.set_data(self.x_data, self.y_data)
             self.outlier = None
             self.annotation.set_visible(False)
+            self.smoothing_slider.setValue(4)
             self.axes.relim()
             self.axes.autoscale_view()
             event.canvas.draw_idle()
+
+    def smooth_curve(self, value):
+        self.line.set_ydata(savgol_filter(self.y_data, value, 3))
+        self.axes.relim()
+        self.axes.autoscale_view()
+        self.fig.canvas.draw_idle()
 
 
 class ClickableWidget(FigureCanvas):
