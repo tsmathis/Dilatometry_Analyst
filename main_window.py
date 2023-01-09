@@ -156,6 +156,7 @@ class MainWindow(BaseWindow):
                 y=self.processed_data[key].data["Percent change displacement (total)"],
                 xlabel="Time (s)",
                 ylabel="Relative Displacement (%)",
+                title=key,
             )
 
             stack.addWidget(norm_widget)
@@ -167,6 +168,7 @@ class MainWindow(BaseWindow):
                 ],
                 xlabel="Time (s)",
                 ylabel="Relative Displacement (%)",
+                title=key,
             )
             stack.addWidget(baseline_widget)
 
@@ -177,6 +179,12 @@ class MainWindow(BaseWindow):
                 ylabel="Averaged Current (mA)",
                 subplots=3,
             )
+
+            avg_plot_midpoint = (
+                avg_widget.fig.subplotpars.right + avg_widget.fig.subplotpars.left
+            ) / 2
+
+            avg_widget.fig.suptitle(key, x=avg_plot_midpoint)
 
             avg_widget.axes.errorbar(
                 self.processed_data[key].averaged_data["Average Potential (V)"],

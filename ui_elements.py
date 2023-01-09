@@ -71,6 +71,7 @@ class FigureWindow(QMainWindow):
         xlabel=None,
         ylabel=None,
         curve_label=None,
+        title=None,
         subplots=1,
         smoothing=False,
         parent=None,
@@ -84,6 +85,7 @@ class FigureWindow(QMainWindow):
 
         self.fig = Figure(figsize=(width, height), dpi=dpi, constrained_layout=True)
         self.axes = self.fig.add_subplot(1, subplots, 1)
+        self.axes.set_title(title)
 
         if x is not None and y is not None:
             self.axes.plot(x, y, label=curve_label, picker=True, pickradius=5)
