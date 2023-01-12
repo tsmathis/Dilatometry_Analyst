@@ -1,3 +1,5 @@
+import traceback, textwrap
+
 from dilatometry import Dilatometry
 from ui_elements import BaseWindow, ModifableTable
 from main_window import MainWindow
@@ -22,9 +24,19 @@ from PyQt5.QtWidgets import (
 )
 
 
+def exception_handler(error):
+    dlg = QMessageBox()
+    # dlg.setWindowTitle(window_title)
+    dlg.setText(textwrap.dedent(error))
+    dlg.setIcon(QMessageBox.Warning)
+    dlg.setStandardButtons(QMessageBox.Ok)
+    button = dlg.exec_()
+    return
+
+
 class WorkerSignals(QObject):
     finished = pyqtSignal()
-    error = pyqtSignal(str, str)
+    error = pyqtSignal(str)
     result = pyqtSignal(object)
 
 
@@ -52,8 +64,8 @@ class Worker(QRunnable):
 
                 processed_data[file_key] = data
 
-        except:
-            pass
+        except Exception as err:
+            self.signals.error.emit(traceback.format_exc())
 
         else:
             self.signals.result.emit(processed_data)
@@ -175,6 +187,12 @@ class FileDialog(BaseWindow):
         self.process_btn.setEnabled(True)
 
     def process_data(self):
+        try:
+            ref_thickness = float(self.baseline_input.text())
+        except ValueError:
+            exception_handler("Please enter a value for the elecrode thickness")
+            return
+
         self.stack_layout.setCurrentIndex(1)
         self.spinner.start()
 
@@ -187,7 +205,7 @@ class FileDialog(BaseWindow):
         worker = Worker(
             dialog=self,
             file_params=self.file_params,
-            ref_thickness=float(self.baseline_input.text()),
+            ref_thickness=ref_thickness,
         )
         worker.signals.result.connect(self.set_data)
         worker.signals.finished.connect(self.finish_processing)
@@ -203,9 +221,8 @@ class FileDialog(BaseWindow):
         self.close()
         self.spinner.stop()
 
-    def process_error(self, error, title):
+    def process_error(self, error):
         self.spinner.stop()
-        # exception_handler(
-        #     error=error,
-        #     window_title=title,
-        # )
+        self.process_btn.setEnabled(False)
+        self.file_params.clear()
+        exception_handler(error=error)
