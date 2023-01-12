@@ -5,10 +5,10 @@ block_cipher = None
 
 
 a = Analysis(
-    ['main.py'],
+    ['src\main.py'],
     pathex=[],
     binaries=[],
-    datas=[('dilatometry_icon.ico', '.')],
+    datas=[('data\icons\dilatometry_icon.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -37,7 +37,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['dilatometry_icon.ico'],
+    icon=['data\icons\dilatometry_icon.ico'],
 )
 coll = COLLECT(
     exe,
