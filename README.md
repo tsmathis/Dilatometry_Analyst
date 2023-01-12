@@ -42,7 +42,6 @@ Dilatometry Analyst primarily serves as tool for automating some simple, albiet 
    Interesting insights into the electrochemical processes occuring during charging/discharging can be found by taking the derivative of the displacement over time and plotting the result versus the applied potential, resulting in a "mechanical cyclic voltammogram". See ref 4 for further information.[^4] Dilatometry Analyst will calculate these "strain-derivatives" for you. Clicking the "Displacement Derivatives" button will show these plots. The derivative plots can be quite noisy and have noticable outliers. These plots support picking and deleting points, simply left-mouse click a point you want to delete and press the "Delete" key. The "Curve smoothing" slider will apply a Savitzky-Golay filter[^5] to your data to smooth the data to presentable levels. 
 
 Even though Dilatomery Analyst is not a full-fledged data visualization tool, the generated plots could in theory be used for publication. Many customization options are available in the plot customization controls (Arrow button in the control bar of each plot). For fully customized plots, it's recommended to export your data to excel files and then use your preferred data visualization software.
-
 <br/>
 <br/>
 
